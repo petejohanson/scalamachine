@@ -1,8 +1,8 @@
 package scalamachine.core
 package flow
 
-import scalamachine.internal.scalaz.State
-import scalamachine.internal.scalaz.syntax.monad._
+import scalaz.State
+import scalaz.syntax.monad._
 
 
 trait Decision {
@@ -44,9 +44,9 @@ object Decision {
   import ReqRespData.statusCodeL
   import Res._
   import ResTransformer._
-  import scalamachine.internal.scalaz.syntax.pointed._
+  import scalaz.syntax.pointed._
 
-  type FlowState[T] = State[ReqRespData, T]
+  type FlowState[+T] = State[ReqRespData, T]
   type ResourceF[T] = Resource => ReqRespData => (ReqRespData, Res[T])
   type CheckF[T] = (T, ReqRespData) => Boolean
   type HandlerF[T] = T => FlowState[T]

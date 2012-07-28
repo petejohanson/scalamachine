@@ -3,15 +3,15 @@ package core
 package v3
 
 import flow._
-import scalamachine.internal.scalaz.std.option._
-import scalamachine.internal.scalaz.std.string._
+import scalaz.std.option._
+import scalaz.std.string._
 import optionSyntax._
-import scalamachine.internal.scalaz.syntax.order._
-import scalamachine.internal.scalaz.syntax.monad._
-import scalamachine.internal.scalaz.OptionT._
-import scalamachine.internal.scalaz.Lens._
-import scalamachine.internal.scalaz.State
-import scalamachine.internal.scalaz.Id
+import scalaz.syntax.order._
+import scalaz.syntax.monad._
+import scalaz.OptionT._
+import scalaz.Lens._
+import scalaz.State
+import scalaz.Id
 import internal.ext._
 import Decision.FlowState
 import Res._
@@ -108,7 +108,7 @@ trait WebmachineDecisions {
 
   /* Accept Exists? */
   lazy val c3: Decision = new Decision {
-    import scalamachine.internal.scalaz.syntax.std.list._
+    import scalaz.syntax.std.list._
 
     // TODO: move somewhere more global it will probably be used elsewhere
     val defaultContentType = ContentType("text/plain")
@@ -518,10 +518,9 @@ trait WebmachineDecisions {
 
       val createPath = for {
         mbCreatePath <- resT[FlowState]((resource.createPath(_: ReqRespData)).st)
-        createPath <- resT[FlowState](mbCreatePath.fold(
-          some = result(_),
-          none = error("create path returned none")).point[FlowState]
-        )
+        createPath <- resT[FlowState](
+	  mbCreatePath.fold(error[String]("create path returned none"))(result(_)).point[FlowState]
+	)
 
         // set dispatch path to new path
         _ <- (dispPathL := createPath).liftM[ResT]
@@ -601,12 +600,11 @@ trait WebmachineDecisions {
         ((responseHeadersL member header) := value).liftM[ResT]
 
       val setBody = for {
-      // find content providing function given chosen content type and produce body, setting it in the response
+        // find content providing function given chosen content type and produce body, setting it in the response
         mbChosenCType <- (metadataL >=> contentTypeL).st.liftM[ResT]
-        chosenCType <- resT[FlowState](mbChosenCType.fold(
-          some = result(_),
-          none = error("internal flow error, missing chosen ctype in o18")
-        ).point[FlowState])
+        chosenCType <- resT[FlowState](
+	  mbChosenCType.fold(error[ContentType]("internal flow error, missing chosen ctype in o18"))(result(_)).point[FlowState]
+	)
 
         mbProvidedF <- resT[FlowState]((resource.contentTypesProvided(_: ReqRespData)).st) map {
           _.find(_._1 == chosenCType).map(_._2)
@@ -674,7 +672,7 @@ trait WebmachineDecisions {
     } yield decision
   }
 
-  /** Helper Functions **/
+  /* Helper Functions */   
   private def chooseCharset(resource: Resource, acceptHeader: String): ResT[FlowState, Decision] = {
 
     val charsetsProvided = resT[FlowState]((resource.charsetsProvided(_: ReqRespData)).st)
@@ -799,10 +797,10 @@ trait WebmachineDecisions {
     mbProvidedEnc <- (resource.encodingsProvided(_: ReqRespData)).st.map(_.getOrElse(None))
     charsetter <- (((mbProvidedCh |@| mbCharset) {
       (p,c)  => p.find(_._1 === c)
-    }).join.fold(some = _._2, none = identity[Array[Byte]](_))).point[FlowState]
+    }).join.fold(identity[Array[Byte]](_))(_._2)).point[FlowState]
     encoder <- (((mbProvidedEnc |@| mbEncoding) {
       (p,e) => p.find(_._1 === e)
-    }).join.fold(some = _._2, none = identity[Array[Byte]](_))).point[FlowState]
+    }).join.fold(identity[Array[Byte]](_))(_._2)).point[FlowState]
   } yield body match {
       case FixedLengthBody(bytes) => encoder(charsetter(bytes))
       case LazyStreamBody(streamer) => LazyStreamBody(streamer.map(_.map {

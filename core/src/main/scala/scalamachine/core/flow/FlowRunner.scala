@@ -1,7 +1,7 @@
 package scalamachine.core
 package flow
 
-import scalamachine.internal.scalaz.State
+import scalaz.State
 import org.slf4j.{LoggerFactory, Logger}
 
 

@@ -1,7 +1,7 @@
 package scalamachine.internal
 package ext
 
-import scalamachine.internal.scalaz.State
+import scalaz.State
 
 trait Function1ToState[A,B] {
   def f: A => (A,B)

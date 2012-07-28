@@ -1,7 +1,7 @@
 package scalamachine.core
 
-import scalamachine.internal.scalaz.LensT._
-import scalamachine.internal.scalaz.@>
+import scalaz.LensT._
+import scalaz.@>
 import HTTPMethods._
 import ReqRespData.{HostData,PathData,Metadata}
 
