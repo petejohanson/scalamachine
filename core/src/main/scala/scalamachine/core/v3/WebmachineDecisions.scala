@@ -33,9 +33,9 @@ trait WebmachineDecisions {
     val name = "v3b13"
     protected def decide(r: Resource): r.Result[Decision] = 
       r.serviceAvailable.flatMap {
-	isAvail => 
-	  if (isAvail) b12.point[r.Result]
-	  else r.haltWithCode[Decision](503)
+        isAvail => 
+          if (isAvail) b12.point[r.Result]
+          else r.haltWithCode[Decision](503)
       }
   }
 
@@ -44,11 +44,11 @@ trait WebmachineDecisions {
     new Decision {
       val name = "v3b12"
       protected def decide(r: Resource): r.Result[Decision] = for {
-	  known <- r.knownMethods
-	  method <- (r.dataL >=> methodL).lift[IO].liftM[ResT]
-	  d <- if (known.contains(method)) b11.point[r.Result]
-	       else r.haltWithCode[Decision](501)
-	} yield d 
+          known <- r.knownMethods
+          method <- (r.dataL >=> methodL).lift[IO].liftM[ResT]
+          d <- if (known.contains(method)) b11.point[r.Result]
+               else r.haltWithCode[Decision](501)
+        } yield d 
     }
 
   /* URI Too Long? */
@@ -56,9 +56,9 @@ trait WebmachineDecisions {
     val name = "v3b11"
     protected def decide(r: Resource): r.Result[Decision] = 
       r.uriTooLong.flatMap {
-	isTooLong => 
-	  if (isTooLong) r.haltWithCode[Decision](414)
-	  else b10.point[r.Result]
+        isTooLong => 
+          if (isTooLong) r.haltWithCode[Decision](414)
+          else b10.point[r.Result]
       }
     
   }    
@@ -68,10 +68,10 @@ trait WebmachineDecisions {
     val name = "v3b10"
     protected def decide(r: Resource): r.Result[Decision] =
       for {
-	allowed <- r.allowedMethods
-	method <- (r.dataL >=> methodL).lift[IO].liftM[ResT]
-	d <- if (allowed.contains(method)) b9.point[r.Result]
-	     else setAllowHdr(r, allowed).lift[IO].liftM[ResT] flatMap { _ => r.haltWithCode[Decision](405) }
+        allowed <- r.allowedMethods
+        method <- (r.dataL >=> methodL).lift[IO].liftM[ResT]
+        d <- if (allowed.contains(method)) b9.point[r.Result]
+             else setAllowHdr(r, allowed).lift[IO].liftM[ResT] flatMap { _ => r.haltWithCode[Decision](405) }
       } yield d
 
     private def setAllowHdr(r: Resource, allowed: List[HTTPMethod]) = 
@@ -83,8 +83,8 @@ trait WebmachineDecisions {
     val name = "v3b9"
     def decide(r: Resource): r.Result[Decision] = r.isMalformed.flatMap {
       isMalformed => 
-	if (isMalformed) r.haltWithCode[Decision](400)
-	else b8.point[r.Result]
+        if (isMalformed) r.haltWithCode[Decision](400)
+        else b8.point[r.Result]
     }
 
   }
@@ -94,11 +94,11 @@ trait WebmachineDecisions {
     val name = "v3b8"
     protected def decide(r: Resource): r.Result[Decision] = 
       for {
-	authRes <- r.isAuthorized
-	d <- authRes.fold(
-	  success = b7.point[r.Result],
-	  failure = msg => setWWWAuthHdr(r, msg) flatMap { _ => r.haltWithCode[Decision](401) }
-	)
+        authRes <- r.isAuthorized
+        d <- authRes.fold(
+          success = b7.point[r.Result],
+          failure = msg => setWWWAuthHdr(r, msg) flatMap { _ => r.haltWithCode[Decision](401) }
+        )
       } yield d
      
     private def setWWWAuthHdr(r: Resource, msg: String): r.Result[Map[HTTPHeader,String]] = 
@@ -110,9 +110,9 @@ trait WebmachineDecisions {
     val name = "v3b7"
     protected def decide(r: Resource): r.Result[Decision] = 
       r.isForbidden.flatMap { 
-	isForbidden => 
-	  if (isForbidden) r.haltWithCode[Decision](403)
-	  else b6.point[r.Result]
+        isForbidden => 
+          if (isForbidden) r.haltWithCode[Decision](403)
+          else b6.point[r.Result]
       }
   }
 
@@ -121,9 +121,9 @@ trait WebmachineDecisions {
     val name ="v3b6"
     protected def decide(r: Resource): r.Result[Decision] = 
       r.contentHeadersValid.flatMap { 
-	hdrsValid => 
-	  if (hdrsValid) b5.point[r.Result]
-	  else r.haltWithCode[Decision](501)
+        hdrsValid => 
+          if (hdrsValid) b5.point[r.Result]
+          else r.haltWithCode[Decision](501)
       }
   }
 
@@ -132,9 +132,9 @@ trait WebmachineDecisions {
     val name = "v3b5"
     protected def decide(r: Resource): r.Result[Decision] =
       r.isKnownContentType.flatMap { 
-	isKnown =>
-	  if (isKnown) b4.point[r.Result]
-	  else r.haltWithCode[Decision](415)
+        isKnown =>
+          if (isKnown) b4.point[r.Result]
+          else r.haltWithCode[Decision](415)
       }
   }
 
@@ -143,9 +143,9 @@ trait WebmachineDecisions {
     val name = "v3b4"
     protected def decide(r: Resource): r.Result[Decision] =
       r.isValidEntityLength.flatMap {
-	isValidLen =>
-	  if (isValidLen) b3.point[r.Result]
-	  else r.haltWithCode[Decision](413)
+        isValidLen =>
+          if (isValidLen) b3.point[r.Result]
+          else r.haltWithCode[Decision](413)
       }
       
   }
@@ -155,8 +155,8 @@ trait WebmachineDecisions {
     val name = "v3b3"
     protected def decide(r: Resource): r.Result[Decision] = 
       (r.dataL >=> methodL).lift[IO].liftM[ResT].flatMap {
-	case OPTIONS => respondToOptions(r)
-	case _ => c3.point[r.Result]
+        case OPTIONS => respondToOptions(r)
+        case _ => c3.point[r.Result]
       }
 
     protected def respondToOptions(r: Resource): r.Result[Decision] = 
@@ -173,12 +173,12 @@ trait WebmachineDecisions {
 
     protected def decide(r: Resource): r.Result[Decision] = {
       def firstOrDefault(provided: r.ContentTypesProvided): ContentType =
-	provided.toNel.map(_.head._1) getOrElse defaultContentType
+        provided.toNel.map(_.head._1) getOrElse defaultContentType
 
       lazy val resolveContentType: r.Result[Decision] = for {
-	provided <- r.contentTypesProvided
-	ctype <- firstOrDefault(provided).point[r.Result]
-	_ <- ((r.dataL >=> metadataL >=> contentTypeL) := Option(ctype)).lift[IO].liftM[ResT]
+        provided <- r.contentTypesProvided
+        ctype <- firstOrDefault(provided).point[r.Result]
+        _ <- ((r.dataL >=> metadataL >=> contentTypeL) := Option(ctype)).lift[IO].liftM[ResT]
       } yield d4
             
       ((r.dataL >=> requestHeadersL) member Accept).lift[IO]
@@ -218,8 +218,8 @@ trait WebmachineDecisions {
 
     protected def decide(r: Resource): r.Result[Decision] = r.isLanguageAvailable.flatMap {
       isLangAvail => 
-	if (isLangAvail) e5.point[r.Result]
-	else r.haltWithCode[Decision](406)
+        if (isLangAvail) e5.point[r.Result]
+        else r.haltWithCode[Decision](406)
     }
   }
 
@@ -269,23 +269,23 @@ trait WebmachineDecisions {
     val name = "v3g7"
     protected def decide(r: Resource): r.Result[Decision] = {
       val variances: r.Result[String] = for {
-	extra <- r.variances
-	ctypes <- r.contentTypesProvided
-	charsets <- r.charsetsProvided
-	encodings <- r.encodingsProvided
+        extra <- r.variances
+        ctypes <- r.contentTypesProvided
+        charsets <- r.charsetsProvided
+        encodings <- r.encodingsProvided
       } yield {
         val defaults = List(
           (ctypes.length, "Accept"),
           (charsets.getOrElse(Nil).length, "Accept-Charset"),
           (encodings.getOrElse(Nil).length, "Accept-Encoding"))
-        ((defaults filter { _._1 > 1}).unzip._2 ++ extra).mkString(",")	
+        ((defaults filter { _._1 > 1}).unzip._2 ++ extra).mkString(",") 
       }
 
       for {
-	vary <- variances
-	_ <- if (vary.length > 0) ((r.dataL >=> responseHeadersL) += ((Vary, vary))).lift[IO].liftM[ResT]
-	     else (r.dataL >=> responseHeadersL).lift[IO].liftM[ResT]
-	resourceExists <- r.resourceExists
+        vary <- variances
+        _ <- if (vary.length > 0) ((r.dataL >=> responseHeadersL) += ((Vary, vary))).lift[IO].liftM[ResT]
+             else (r.dataL >=> responseHeadersL).lift[IO].liftM[ResT]
+        resourceExists <- r.resourceExists
       } yield if (resourceExists) g8 else h7
     }
   }
@@ -312,10 +312,10 @@ trait WebmachineDecisions {
     val name = "v3g11" 
     protected def decide(r: Resource): r.Result[Decision] = {
       testEtag(r, IfMatch) flatMap {
-	doesMatch => {
-	  if (doesMatch) h10.point[r.Result]
-	  else r.haltWithCode[Decision](412)
-	}
+        doesMatch => {
+          if (doesMatch) h10.point[r.Result]
+          else r.haltWithCode[Decision](412)
+        }
       }
     }
   }
@@ -360,8 +360,8 @@ trait WebmachineDecisions {
     val name = "v3i7"
     protected def decide(r: Resource): r.Result[Decision] = (r.dataL >=> methodL).lift[IO].liftM[ResT].map { 
       method => 
-	if (method === PUT) i4
-	else k7
+        if (method === PUT) i4
+        else k7
     }
   }
 
@@ -386,8 +386,8 @@ trait WebmachineDecisions {
     val name = "v3j18" 
     protected def decide(r: Resource): r.Result[Decision] = (r.dataL >=> methodL).lift[IO].liftM[ResT].flatMap {
       method => 
-	if (List(GET,HEAD).contains(method)) r.haltWithCode[Decision](304)
-	else r.haltWithCode[Decision](412)
+        if (List(GET,HEAD).contains(method)) r.haltWithCode[Decision](304)
+        else r.haltWithCode[Decision](412)
     }
   }
 
@@ -403,8 +403,8 @@ trait WebmachineDecisions {
     val name = "v3k7"
     protected def decide(r: Resource): r.Result[Decision] = r.previouslyExisted map { 
       existed => 
-	if (existed) k5
-	else l7
+        if (existed) k5
+        else l7
     }
   }
 
@@ -412,9 +412,9 @@ trait WebmachineDecisions {
     val name = "v3k13"
     protected def decide(r: Resource): r.Result[Decision] = 
       testEtag(r, IfNoneMatch) map {
-	doesMatch => 
-	  if (doesMatch) j18
-	  else l13
+        doesMatch => 
+          if (doesMatch) j18
+          else l13
       }
   }
 
@@ -430,7 +430,7 @@ trait WebmachineDecisions {
     val name = "v3l7"
     protected def decide(r: Resource): r.Result[Decision] = (r.dataL >=> methodL).lift[IO].liftM[ResT].flatMap {
       method =>
-	if (method === POST) m7.point[r.Result]
+        if (method === POST) m7.point[r.Result]
         else r.haltWithCode[Decision](404)
     }    
 
@@ -473,7 +473,7 @@ trait WebmachineDecisions {
     val name = "v3m5"
     protected def decide(r: Resource): r.Result[Decision] = (r.dataL >=> methodL).lift[IO].liftM[ResT].flatMap {
       method => 
-	if (method === POST) n5.point[r.Result]
+        if (method === POST) n5.point[r.Result]
         else r.haltWithCode[Decision](410)
     }
   }
@@ -483,9 +483,9 @@ trait WebmachineDecisions {
     val name = "v3m7"
     protected def decide(r: Resource): r.Result[Decision] = 
       r.allowMissingPost flatMap {
-	allowMissing =>
-	  if (allowMissing) n11.point[r.Result]
- 	  else r.haltWithCode[Decision](404)
+        allowMissing =>
+          if (allowMissing) n11.point[r.Result]
+          else r.haltWithCode[Decision](404)
       }
   }
 
@@ -502,9 +502,9 @@ trait WebmachineDecisions {
     val name = "v3m20"
     protected def decide(r: Resource): r.Result[Decision] = 
       r.deleteResource flatMap {
-	ok =>
-	  if (ok) m20b.point[r.Result]
-	  else r.haltWithCode[Decision](500)
+        ok =>
+          if (ok) m20b.point[r.Result]
+          else r.haltWithCode[Decision](500)
       }
   }
 
@@ -513,9 +513,9 @@ trait WebmachineDecisions {
     val name = "v3m20b"
     protected def decide(r: Resource): r.Result[Decision] = 
       r.deleteCompleted flatMap {
-	completed =>
-	  if (completed) o20.point[r.Result]
-	  else r.haltWithCode[Decision](202)
+        completed =>
+          if (completed) o20.point[r.Result]
+          else r.haltWithCode[Decision](202)
       }
   }
 
@@ -524,9 +524,9 @@ trait WebmachineDecisions {
     val name = "v3n5"
     protected def decide(r: Resource): r.Result[Decision] = 
       r.allowMissingPost flatMap {
-	allowMissing =>
-	  if (allowMissing) n11.point[r.Result]
-	  else r.haltWithCode[Decision](410)
+        allowMissing =>
+          if (allowMissing) n11.point[r.Result]
+          else r.haltWithCode[Decision](410)
       }
   }
 
@@ -543,8 +543,8 @@ trait WebmachineDecisions {
       val createPath: r.Result[Unit] = for {
         mbCreatePath <- r.createPath
         createPath <- resT[r.ReqRespState](
-	  mbCreatePath.fold(error[String]("create path returned none"))(result(_)).point[r.ReqRespState]
-	)
+          mbCreatePath.fold(error[String]("create path returned none"))(result(_)).point[r.ReqRespState]
+        )
 
         // set dispatch path to new path
         _ <- ((r.dataL >=> dispPathL) := createPath).lift[IO].liftM[ResT]
@@ -583,7 +583,7 @@ trait WebmachineDecisions {
     val name = "v3n16"
     protected def decide(r: Resource): r.Result[Decision] = 
       (r.dataL >=> methodL).lift[IO].liftM[ResT] map {
-	method => if (method === POST) n11 else o16
+        method => if (method === POST) n11 else o16
       }
   }
 
@@ -602,7 +602,7 @@ trait WebmachineDecisions {
     val name = "v3016"
     protected def decide(r: Resource): r.Result[Decision] = 
       (r.dataL >=> methodL).lift[IO].liftM[ResT] map {
-	method => if (method === PUT) o14 else o18
+        method => if (method === PUT) o14 else o18
       }
   }
 
@@ -621,8 +621,8 @@ trait WebmachineDecisions {
         // find content providing function given chosen content type and produce body, setting it in the response
         mbChosenCType <- (r.dataL >=> metadataL >=> contentTypeL).lift[IO].liftM[ResT]
         chosenCType <- resT[r.ReqRespState](
-	  mbChosenCType.fold(error[ContentType]("internal flow error, missing chosen ctype in o18"))(result(_)).point[r.ReqRespState]
-	)
+          mbChosenCType.fold(error[ContentType]("internal flow error, missing chosen ctype in o18"))(result(_)).point[r.ReqRespState]
+        )
 
         mbProvidedF <- r.contentTypesProvided map {
           _.find(_._1 == chosenCType).map(_._2)
@@ -659,9 +659,9 @@ trait WebmachineDecisions {
     val name = "v3o20"
     protected def decide(r: Resource): r.Result[Decision] =
       (r.dataL >=> respBodyL).lift[IO].liftM[ResT] flatMap {
-	body => 
-	  if (body.isEmpty) r.haltWithCode[Decision](204)
-	  else o18.point[r.Result]
+        body => 
+          if (body.isEmpty) r.haltWithCode[Decision](204)
+          else o18.point[r.Result]
       }
   }
 
@@ -680,9 +680,9 @@ trait WebmachineDecisions {
     val name = "v3p11"
     protected def decide(r: Resource): r.Result[Decision] = 
       (r.dataL >=> responseHeadersL member Location).lift[IO].liftM[ResT] flatMap {
-	mbLoc =>
-	  if (mbLoc.isDefined) r.haltWithCode[Decision](201)
-	  else o20.point[r.Result]
+        mbLoc =>
+          if (mbLoc.isDefined) r.haltWithCode[Decision](201)
+          else o20.point[r.Result]
       }
   }
 
@@ -730,12 +730,12 @@ trait WebmachineDecisions {
   private def headerExists(r: Resource, header: HTTPHeader, existsCode: Int, dne: Decision): r.Result[Decision] = 
     (r.dataL >=> requestHeadersL member header).map(_.isDefined).lift[IO].liftM[ResT].flatMap {
       isDefined => 
-	if (isDefined) r.haltWithCode[Decision](existsCode)
+        if (isDefined) r.haltWithCode[Decision](existsCode)
         else dne.point[r.Result]
     }
 
   private def validateDate(r: Resource, 
-			   headerName: HTTPHeader,
+                           headerName: HTTPHeader,
                            valid: Decision,
                            invalid: Decision): r.Result[Decision] = {
     val validate: State[(ReqRespData,r.Context),Decision] = for {
@@ -762,7 +762,7 @@ trait WebmachineDecisions {
       mbIums <- (r.dataL >=> requestHeadersL member headerName).lift[IO].liftM[ResT]
       mbLastMod <- r.lastModified      
       decision <- if (isModified(mbLastMod, mbIums)) resT[r.ReqRespState](modified.point[r.ReqRespState])
-		  else resT[r.ReqRespState](notModified.point[r.ReqRespState])
+                  else resT[r.ReqRespState](notModified.point[r.ReqRespState])
     } yield decision
 
   }
@@ -771,14 +771,14 @@ trait WebmachineDecisions {
     val setLocation = for {
       loc <- optionT[r.Result](resourceCall)
       _ <- optionT[r.Result] {
-	((r.dataL >=> responseHeadersL) += ((Location, loc))).lift[IO].liftM[ResT].map(Option(_))
+        ((r.dataL >=> responseHeadersL) += ((Location, loc))).lift[IO].liftM[ResT].map(Option(_))
       }
     } yield loc
     
     setLocation.run flatMap {
       mbLocation => 
-	if (mbLocation.isDefined) r.haltWithCode[Decision](movedCode)
-	else notMoved.point[r.Result]	  
+        if (mbLocation.isDefined) r.haltWithCode[Decision](movedCode)
+        else notMoved.point[r.Result]     
     }
   }
 
@@ -806,17 +806,17 @@ trait WebmachineDecisions {
       mbEncoding <- (r.dataL >=> metadataL >=> chosenEncodingL).lift[IO].liftM[ResT]
       
       charsetter <- (((mbProvidedCh |@| mbCharset) {
-	(p,c)  => p.find(_._1 === c)
+        (p,c)  => p.find(_._1 === c)
       }).join.fold(id)(_._2)).point[r.Result]
       encoder <- (((mbProvidedEnc |@| mbEncoding) {
-	(p,e) => p.find(_._1 === e)
+        (p,e) => p.find(_._1 === e)
       }).join.fold(id)(_._2)).point[r.Result]
 
     } yield body match {
       case FixedLengthBody(bytes) => FixedLengthBody(encoder(charsetter(bytes)))
       case LazyStreamBody(streamer) => LazyStreamBody(streamer.map(_.map {
-	case HTTPBody.ByteChunk(bytes) => HTTPBody.ByteChunk(encoder(charsetter(bytes)))
-	case otherChunk => otherChunk
+        case HTTPBody.ByteChunk(bytes) => HTTPBody.ByteChunk(encoder(charsetter(bytes)))
+        case otherChunk => otherChunk
       }))
     }
   }

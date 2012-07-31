@@ -46,7 +46,7 @@ class V3ColGSpecs extends Specification with Mockito with SpecsHelper with Webma
     import Res._
     def stub(r: Resource) {    
       val ctypes: r.ContentTypesProvided =
-	(ContentType("text/plain"), (FixedLengthBody(""): HTTPBody).point[r.Result]) ::
+        (ContentType("text/plain"), (FixedLengthBody(""): HTTPBody).point[r.Result]) ::
          (ContentType("application/json"), (FixedLengthBody(""): HTTPBody).point[r.Result]) :: Nil
       val charsets: CharsetsProvided = Some(("charset1", identity[Array[Byte]](_)) :: ("charset2", identity[Array[Byte]](_)) :: Nil)
       val encodings: EncodingsProvided = Some(("identity", identity[Array[Byte]](_)) :: ("gzip", identity[Array[Byte]](_)) :: Nil)
@@ -62,9 +62,9 @@ class V3ColGSpecs extends Specification with Mockito with SpecsHelper with Webma
     testDecisionResultHasData(
       g7,
       stub(_)) {
-	_.responseHeader(Vary) must beSome.like {
+        _.responseHeader(Vary) must beSome.like {
           case vary => vary must contain("Accept") and contain("Accept-Encoding") and contain("Accept-Charset")
-	}
+        }
       }
   }
 
@@ -85,9 +85,9 @@ class V3ColGSpecs extends Specification with Mockito with SpecsHelper with Webma
     testDecisionResultHasData(
       g7,
       stub(_)) {
-	_.responseHeader(Vary) must beSome.like {
+        _.responseHeader(Vary) must beSome.like {
           case vary => vary must not =~("""Accept[^-]""")
-	}
+        }
       }
   }
 
@@ -95,7 +95,7 @@ class V3ColGSpecs extends Specification with Mockito with SpecsHelper with Webma
     import Res._
     def stub(r: Resource) {
       val ctypes: r.ContentTypesProvided = 
-	(ContentType("application/json"), (FixedLengthBody(""): HTTPBody).point[r.Result]) :: Nil
+        (ContentType("application/json"), (FixedLengthBody(""): HTTPBody).point[r.Result]) :: Nil
       val charsets: CharsetsProvided = Some(("charset1", identity[Array[Byte]](_)) :: ("charset2", identity[Array[Byte]](_)) :: Nil)
       val encodings: EncodingsProvided = Some(("identity", identity[Array[Byte]](_)) :: ("gzip", identity[Array[Byte]](_)) :: Nil)
 
@@ -109,9 +109,9 @@ class V3ColGSpecs extends Specification with Mockito with SpecsHelper with Webma
     testDecisionResultHasData(
       g7,
       stub(_)) {
-	_.responseHeader(Vary) must beSome.like {
+        _.responseHeader(Vary) must beSome.like {
           case vary => vary must not =~("""Accept[^-]""")
-	}
+        }
       }
   }
 
@@ -119,7 +119,7 @@ class V3ColGSpecs extends Specification with Mockito with SpecsHelper with Webma
     import Res._
     def stub(r: Resource) {
       val ctypes: r.ContentTypesProvided =
-	(ContentType("text/plain"), (FixedLengthBody(""): HTTPBody).point[r.Result]) ::
+        (ContentType("text/plain"), (FixedLengthBody(""): HTTPBody).point[r.Result]) ::
           (ContentType("application/json"), (FixedLengthBody(""): HTTPBody).point[r.Result]) :: Nil
       
       val charsets: CharsetsProvided = None
@@ -162,9 +162,9 @@ class V3ColGSpecs extends Specification with Mockito with SpecsHelper with Webma
     testDecisionResultHasData(
       g7,
       stub(_)) {
-	_.responseHeader(Vary) must beSome.like {
+        _.responseHeader(Vary) must beSome.like {
           case vary => vary must not contain("Accept-Charset")
-	}
+        }
       }
   }
 
@@ -188,9 +188,9 @@ class V3ColGSpecs extends Specification with Mockito with SpecsHelper with Webma
     testDecisionResultHasData(
       g7,
       stub(_)) {
-	_.responseHeader(Vary) must beSome.like {
+        _.responseHeader(Vary) must beSome.like {
           case vary => vary must not contain("Accept-Charset")
-	}
+        }
       }
   }
 
@@ -198,7 +198,7 @@ class V3ColGSpecs extends Specification with Mockito with SpecsHelper with Webma
     import Res._
     def stub(r: Resource) {
       val ctypes: r.ContentTypesProvided =
-	(ContentType("text/plain"), (HTTPBody.Empty: HTTPBody).point[r.Result]) ::
+        (ContentType("text/plain"), (HTTPBody.Empty: HTTPBody).point[r.Result]) ::
           (ContentType("application/json"), (HTTPBody.Empty: HTTPBody).point[r.Result]) :: Nil
 
       val charsets: CharsetsProvided = Some(("charset1", identity[Array[Byte]](_)) :: ("charset2", identity[Array[Byte]](_)) :: Nil)
@@ -213,9 +213,9 @@ class V3ColGSpecs extends Specification with Mockito with SpecsHelper with Webma
     testDecisionResultHasData(
       g7,
       stub(_)) {
-	_.responseHeader(Vary) must beSome.like {
+        _.responseHeader(Vary) must beSome.like {
           case vary => vary must not contain("Accept-Encoding")
-	}
+        }
       }
 
   }
@@ -224,7 +224,7 @@ class V3ColGSpecs extends Specification with Mockito with SpecsHelper with Webma
     import Res._
     def stub(r: Resource) {
       val ctypes: r.ContentTypesProvided =
-	(ContentType("text/plain"), (HTTPBody.Empty: HTTPBody).point[r.Result]) ::
+        (ContentType("text/plain"), (HTTPBody.Empty: HTTPBody).point[r.Result]) ::
           (ContentType("application/json"), (HTTPBody.Empty: HTTPBody).point[r.Result]) :: Nil
 
       val charsets: CharsetsProvided = Some(("charset1", identity[Array[Byte]](_)) :: ("charset2", identity[Array[Byte]](_)) :: Nil)
@@ -239,9 +239,9 @@ class V3ColGSpecs extends Specification with Mockito with SpecsHelper with Webma
     testDecisionResultHasData(
       g7,
       stub(_)) {
-	_.responseHeader(Vary) must beSome.like {
+        _.responseHeader(Vary) must beSome.like {
           case vary => vary must not contain("Accept-Encoding")
-	}
+        }
       }
   }
 
@@ -249,7 +249,7 @@ class V3ColGSpecs extends Specification with Mockito with SpecsHelper with Webma
     import Res._
     def stub(r: Resource) {
       val ctypes: r.ContentTypesProvided =
-	(ContentType("text/plain"), (HTTPBody.Empty: HTTPBody).point[r.Result]) ::
+        (ContentType("text/plain"), (HTTPBody.Empty: HTTPBody).point[r.Result]) ::
           (ContentType("application/json"), (HTTPBody.Empty: HTTPBody).point[r.Result]) :: Nil
 
 
@@ -265,9 +265,9 @@ class V3ColGSpecs extends Specification with Mockito with SpecsHelper with Webma
     testDecisionResultHasData(
       g7,
       stub(_)) {
-	_.responseHeader(Vary) must beSome.like {
+        _.responseHeader(Vary) must beSome.like {
           case vary => vary must not contain("Accept-Encoding")
-	}
+        }
       }
   }
 
@@ -275,7 +275,7 @@ class V3ColGSpecs extends Specification with Mockito with SpecsHelper with Webma
     import Res._
     def stub(r: Resource) {
       val ctypes: r.ContentTypesProvided =
-	(ContentType("text/plain"), (HTTPBody.Empty: HTTPBody).point[r.Result]) ::
+        (ContentType("text/plain"), (HTTPBody.Empty: HTTPBody).point[r.Result]) ::
           (ContentType("application/json"), (HTTPBody.Empty: HTTPBody).point[r.Result]) :: Nil
       
 
@@ -291,9 +291,9 @@ class V3ColGSpecs extends Specification with Mockito with SpecsHelper with Webma
     testDecisionResultHasData(
       g7,
       stub(_)) {
-	_.responseHeader(Vary) must beSome.like {
+        _.responseHeader(Vary) must beSome.like {
           case vary => vary must contain("One") and contain("Two")
-	}
+        }
       }
   }
 
@@ -303,10 +303,10 @@ class V3ColGSpecs extends Specification with Mockito with SpecsHelper with Webma
       g8,
       r => {
         r.contentTypesProvided returns (Nil: r.ContentTypesProvided).point[r.Result]
-	r.charsetsProvided returns (None: CharsetsProvided).point[r.Result]
-	r.encodingsProvided returns (None: EncodingsProvided).point[r.Result]
-	r.variances returns (Nil: Seq[String]).point[r.Result]
-	r.resourceExists returns true.point[r.Result]
+        r.charsetsProvided returns (None: CharsetsProvided).point[r.Result]
+        r.encodingsProvided returns (None: EncodingsProvided).point[r.Result]
+        r.variances returns (Nil: Seq[String]).point[r.Result]
+        r.resourceExists returns true.point[r.Result]
       }
     )
   }
@@ -317,10 +317,10 @@ class V3ColGSpecs extends Specification with Mockito with SpecsHelper with Webma
       h7,
       r => {
         r.contentTypesProvided returns (Nil: r.ContentTypesProvided).point[r.Result]
-	r.charsetsProvided returns (None: CharsetsProvided).point[r.Result]
-	r.encodingsProvided returns (None: EncodingsProvided).point[r.Result]
-	r.variances returns (Nil: Seq[String]).point[r.Result]
-	r.resourceExists returns false.point[r.Result]
+        r.charsetsProvided returns (None: CharsetsProvided).point[r.Result]
+        r.encodingsProvided returns (None: EncodingsProvided).point[r.Result]
+        r.variances returns (Nil: Seq[String]).point[r.Result]
+        r.resourceExists returns false.point[r.Result]
       }
     )
   }

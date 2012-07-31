@@ -74,8 +74,8 @@ class V3ColCDEFSpecs extends Specification with Mockito with SpecsHelper with We
     val ctypesBase = ContentType("text/html") :: ContentType("text/plain") :: Nil
     val fakeBody: HTTPBody = FixedLengthBody("".getBytes)
     def stub(r: Resource) {
-      val ctypes: r.ContentTypesProvided =	
-	(ctypesBase, List.fill(2)(fakeBody.point[r.Result])).zipped.toList
+      val ctypes: r.ContentTypesProvided =      
+        (ctypesBase, List.fill(2)(fakeBody.point[r.Result])).zipped.toList
 
       r.contentTypesProvided returns ctypes.point[r.Result]
     }
@@ -111,7 +111,7 @@ class V3ColCDEFSpecs extends Specification with Mockito with SpecsHelper with We
   def testMediaTypeNotProvided = {
     def stub(r: Resource) {
       val ctypes: r.ContentTypesProvided = 
-	(ContentType("text/html"), (FixedLengthBody("".getBytes): HTTPBody).point[r.Result]) :: Nil
+        (ContentType("text/html"), (FixedLengthBody("".getBytes): HTTPBody).point[r.Result]) :: Nil
 
       r.contentTypesProvided returns ctypes.point[r.Result]
     }
@@ -124,7 +124,7 @@ class V3ColCDEFSpecs extends Specification with Mockito with SpecsHelper with We
   def testMediaTypeProvided = {
     def stub(r: Resource) {
       val ctypes: r.ContentTypesProvided = 
-	(ContentType("text/html"), (FixedLengthBody("".getBytes): HTTPBody).point[r.Result]) :: Nil
+        (ContentType("text/html"), (FixedLengthBody("".getBytes): HTTPBody).point[r.Result]) :: Nil
 
       r.contentTypesProvided returns ctypes.point[r.Result]
     }

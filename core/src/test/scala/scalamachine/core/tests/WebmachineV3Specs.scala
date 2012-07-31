@@ -634,7 +634,7 @@ class WebmachineV3Specs extends Specification with Mockito with SpecsHelper with
       val charsets: EncodingsProvided = Some(("ch1", (s: Array[Byte]) => s ++ charsetBody.getBytes) :: ("ch2", identity[Array[Byte]](_)) :: Nil)
       val bodyR: r.Result[Boolean] = ((r.dataL >=> respBodyL) := setBody).map(_ => true).lift[IO].liftM[ResT] 
       val contentTypesAccepted: r.ContentTypesAccepted =
-	(ContentType("text/plain"), bodyR) :: (ContentType("text/html"), false.point[r.Result]) :: Nil
+        (ContentType("text/plain"), bodyR) :: (ContentType("text/html"), false.point[r.Result]) :: Nil
 
       r.postIsCreate returns true.point[r.Result]
       r.createPath returns Option("a/b").point[r.Result]
@@ -683,7 +683,7 @@ class WebmachineV3Specs extends Specification with Mockito with SpecsHelper with
   def testN11ContentTypeNotAccepted = {
     def stub(r: Resource) {
       val contentTypesAccepted: r.ContentTypesAccepted =
-	(ContentType("text/html"), false.point[r.Result]) :: Nil
+        (ContentType("text/html"), false.point[r.Result]) :: Nil
 
       r.postIsCreate returns true.point[r.Result]
       r.createPath returns Option("a/b").point[r.Result]
@@ -701,7 +701,7 @@ class WebmachineV3Specs extends Specification with Mockito with SpecsHelper with
   def testN11ContentTypeAcceptedReturnsFalse = {
     def stub(r: Resource) {
       val contentTypesAccepted: r.ContentTypesAccepted =
-	(ContentType("text/html"), false.point[r.Result]) ::Nil
+        (ContentType("text/html"), false.point[r.Result]) ::Nil
 
       r.postIsCreate returns true.point[r.Result]
       r.createPath returns Option("a/b").point[r.Result]
@@ -809,7 +809,7 @@ class WebmachineV3Specs extends Specification with Mockito with SpecsHelper with
       n11,
       r => {
         r.postIsCreate returns false.point[r.Result]
-	r.processPost returns ((r.dataL >=> respBodyL) := processPostBody).lift[IO].liftM[ResT].map(_ => true)
+        r.processPost returns ((r.dataL >=> respBodyL) := processPostBody).lift[IO].liftM[ResT].map(_ => true)
         r.encodingsProvided returns encodings.point[r.Result]
         r.charsetsProvided returns charsets.point[r.Result]
       },
@@ -881,7 +881,7 @@ class WebmachineV3Specs extends Specification with Mockito with SpecsHelper with
   def testO14ContentTypeAcceptedReturnsFalse = {    
     def stub(r: Resource) {
       val contentTypesAccepted: r.ContentTypesAccepted =
-	(ContentType("text/html"), false.point[r.Result]) :: Nil
+        (ContentType("text/html"), false.point[r.Result]) :: Nil
 
       r.isConflict returns false.point[r.Result]
       r.contentTypesAccepted returns contentTypesAccepted.point[r.Result]
