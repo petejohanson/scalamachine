@@ -23,7 +23,7 @@ trait Resource {
   type Context
 
   type ReqRespState[+A] = StateT[IO,(ReqRespData,Context),A]
-  type Result[+A] = ResTransformer[ReqRespState,A]
+  type Result[+A] = ResT[ReqRespState,A]
 
   type ContentTypesProvided = List[(ContentType,Result[HTTPBody])] 
   type ContentTypesAccepted = List[(ContentType,Result[Boolean])]
@@ -33,7 +33,7 @@ trait Resource {
   def setStatusCode(code: Int): ReqRespState[Int] = ((dataL >=> statusCodeL) := code).lift[IO]
 
   def haltWithCode[A](code: Int): Result[A] = 
-    ResTransformer.resT[ReqRespState](Res.halt[A](code).point[ReqRespState])
+    ResT.resT[ReqRespState](Res.halt[A](code).point[ReqRespState])
 
   // TODO: take initial data?
   def init: Context

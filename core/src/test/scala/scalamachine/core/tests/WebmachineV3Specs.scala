@@ -1,9 +1,10 @@
-package scalamachine.core.tests
+package scalamachine.core
+package tests
 
 import org.specs2._
 import mock._
 import org.mockito.{Matchers => MM}
-import scalamachine.core.{ResTransformer => ResT, _}
+import scalamachine.core.ResT
 import Resource._
 import flow._
 import v3.WebmachineDecisions

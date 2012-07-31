@@ -133,10 +133,15 @@ trait ResOps[A] {
     case ValueRes(a) => Some(a)
     case _ => None
   }
+
+  /**
+   * Lifts the `Res` into a some monad and wraps that value in a `ResT`
+   */
+  def liftT[M[+_]](implicit M: Monad[M]): ResT[M, A] = ResT.resT[M](M.point(res))
 }
 
 
-object Res extends ResFunctions with ResInternalInstances {
+object Res extends ResFunctions with ResInstances {
 
   implicit def resOps[T](r: Res[T]): ResOps[T] = new ResOps[T] {
     def res: Res[T] = r
@@ -154,9 +159,9 @@ trait ResFunctions {
   def empty[A]: Res[A] = EmptyRes
 }
 
-trait ResInternalInstances {
+trait ResInstances {
   import scalaz.{Monad, Traverse, Applicative}
-  implicit val resScalazInternalInstances = new Traverse[Res] with Monad[Res] {
+  implicit val resScalazInstances = new Traverse[Res] with Monad[Res] {
     def point[A](a: => A): Res[A] = ValueRes(a)
     def traverseImpl[G[_],A,B](fa: Res[A])(f: A => G[B])(implicit G: Applicative[G]): G[Res[B]] =
       map(fa)(a => G.map(f(a))(ValueRes(_): Res[B])) match {
@@ -169,15 +174,15 @@ trait ResInternalInstances {
   }
 }
 
-case class ResTransformer[M[+_],+A](run: M[Res[A]]) {
+case class ResT[M[+_],+A](run: M[Res[A]]) {
   self =>
 
-  def map[B](f: A => B)(implicit F: Functor[M]): ResTransformer[M,B] = {
-    ResTransformer(F.map(self.run)((_: Res[A]) map f))
+  def map[B](f: A => B)(implicit F: Functor[M]): ResT[M,B] = {
+    ResT(F.map(self.run)((_: Res[A]) map f))
   }
 
-  def flatMap[B](f: A => ResTransformer[M,B])(implicit M: Monad[M]) = {
-    ResTransformer(M.bind(self.run) {
+  def flatMap[B](f: A => ResT[M,B])(implicit M: Monad[M]) = {
+    ResT(M.bind(self.run) {
       case ValueRes(v) => f(v).run
       case r @ HaltRes(_,_) => M.point(r: Res[B])
       case r @ ErrorRes(_) => M.point(r: Res[B])
@@ -186,34 +191,56 @@ case class ResTransformer[M[+_],+A](run: M[Res[A]]) {
   }
 
   def filter(p: A => Boolean)(implicit M: Monad[M]) = {
-    ResTransformer(M.bind(self.run) { res => M.point(res filter p) })
+    ResT(M.bind(self.run) { res => M.point(res filter p) })
   }
+
+  def orElse[B >: A](other: => ResT[M, B])(implicit M: Monad[M]): ResT[M,B] =
+    ResT(
+      M.bind(self.run)(_ match {
+        case ValueRes(x) => M.point(ValueRes(x))
+        case _ => other.run
+      })
+    )
+
+  def flattenA[B](implicit ev: A <:< Res[B], M: Functor[M]): ResT[M,B] =
+    ResT(M.map(self.run)((_: Res[A]).flatten))
+
 }
 
 
-object ResTransformer extends ResTransformerFunctions with ResTransformerInstances
+object ResT extends ResTFunctions with ResTInstances
 
-trait ResTransformerFunctions {
+trait ResTFunctions {
   import scalaz.~>
-  def resT[M[+_]] = new (({type λ[α] = M[Res[α]]})#λ ~> ({type λ[α] = ResTransformer[M, α]})#λ) {
-    def apply[A](a: M[Res[A]]) = ResTransformer[M, A](a)
+  import Res._
+
+  def resT[M[+_]] = new (({type λ[α] = M[Res[α]]})#λ ~> ({type λ[α] = ResT[M, α]})#λ) {
+    def apply[A](a: M[Res[A]]) = ResT[M, A](a)
   }
+
+  def resultT[M[+_] : Monad, A](value: A): ResT[M,A] = result(value).liftT[M]
+  def haltT[M[+_] : Monad, A](code: Int): ResT[M,A] = halt[A](code).liftT[M]
+  def haltT[M[+_] : Monad, A](code: Int, body: HTTPBody): ResT[M,A] = halt[A](code, body).liftT[M]
+  def errorT[M[+_] : Monad, A](body: HTTPBody): ResT[M,A] = error[A](body).liftT[M]
+  def errorT[M[+_] : Monad, A](err: Throwable): ResT[M,A] = error[A](err).liftT[M]
+  def emptyT[M[+_] : Monad, A]: ResT[M,A] = empty[A].liftT[M]
+
 }
 
-trait ResTransformerInstances {
+trait ResTInstances {
   import scalaz.{MonadTrans, Monad}
   import scalaz.syntax.pointed._
 
-  implicit def RTInstances[M[+_] : Monad] = new Monad[({type R[X]=ResTransformer[M,X]})#R] {
-    def point[A](a: => A): ResTransformer[M,A] = ResTransformer[M,A](Monad[M].point(Monad[Res].point(a)))
-    def bind[A,B](fa: ResTransformer[M,A])(f: A => ResTransformer[M,B]): ResTransformer[M,B] = fa flatMap f
+  implicit def RTInstances[M[+_] : Monad] = new Monad[({type R[X]=ResT[M,X]})#R] {
+    def point[A](a: => A): ResT[M,A] = ResT[M,A](Monad[M].point(Monad[Res].point(a)))
+    def bind[A,B](fa: ResT[M,A])(f: A => ResT[M,B]): ResT[M,B] = fa flatMap f
   }
 
-  implicit val RTMonadTrans = new MonadTrans[ResTransformer] {
-    def liftM[G[+_], A](ga: G[A])(implicit G: Monad[G]): ResTransformer[G,A] =
-      ResTransformer[G,A](G.map(ga)(_.point[Res]))
+  implicit val RTMonadTrans = new MonadTrans[ResT] {
+    def liftM[G[+_], A](ga: G[A])(implicit G: Monad[G]): ResT[G,A] =
+      ResT[G,A](G.map(ga)(_.point[Res]))
 
-    implicit def apply[G[+_]: Monad]: Monad[({type R[X]=ResTransformer[G,X]})#R] = RTInstances[G]
+    implicit def apply[G[+_]: Monad]: Monad[({type R[X]=ResT[G,X]})#R] = RTInstances[G]
   }
 }
 

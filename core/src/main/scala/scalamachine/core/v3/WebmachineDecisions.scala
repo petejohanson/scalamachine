@@ -18,8 +18,7 @@ import scalaz.effect.IO
 import IO._
 import internal.ext._
 import Res._
-import scalamachine.core.{ResTransformer => ResT}
-import ResTransformer._
+import ResT._
 import ReqRespData._
 import Metadata._
 import Resource._

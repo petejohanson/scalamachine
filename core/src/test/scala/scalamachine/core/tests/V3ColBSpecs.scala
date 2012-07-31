@@ -13,7 +13,7 @@ import scalaz.syntax.monad._
 import org.apache.commons.httpclient.util.DateUtil
 import HTTPHeaders._
 import HTTPMethods._
-import ResTransformer._
+import ResT._
 import Res._
 
 
