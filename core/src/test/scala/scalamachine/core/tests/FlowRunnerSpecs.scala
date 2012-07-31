@@ -7,7 +7,7 @@ import scalamachine.core._
 import flow._
 import Res._
 
-
+/*
 class FlowRunnerSpecs extends Specification with Mockito { def is =
   "FlowRunner".title                                                                ^
   """
@@ -141,3 +141,4 @@ class FlowRunnerSpecs extends Specification with Mockito { def is =
 
 
 }
+*/

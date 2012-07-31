@@ -2,123 +2,39 @@ package scalamachine.core
 package flow
 
 import scalaz.State
+import scalaz.Scalaz.get
 import scalaz.syntax.monad._
-
+import scalaz.effect.IO
 
 trait Decision {
-  import Decision.FlowState
-  import ReqRespData.{statusCodeL, respBodyL}
-
   def name: String
 
-  def apply(resource: Resource): FlowState[Option[Decision]] = {
-    for {
-      res <- decide(resource)
-      _ <- res match {
-        case HaltRes(code, body) => setError(code, body)
-        case ErrorRes(error) => setError(500, Option(error))
-        case _ => ().point[FlowState]
-      }
-    } yield res.toOption
+  def apply(r: Resource): r.ReqRespState[Option[Decision]] = decide(r).run.flatMap {
+    case ValueRes(next) => Option(next).point[r.ReqRespState]
+    case HaltRes(code,body) => setError(r, code, body)
+    case ErrorRes(error) => setError(r, 500, Option(error))
+    case EmptyRes => (None: Option[Decision]).point[r.ReqRespState]
   }
 
-  protected def decide(resource: Resource): FlowState[Res[Decision]]
+  protected def decide(r: Resource): r.Result[Decision]
 
-  private def setError(code: Int, errorBody: Option[HTTPBody]) = for {
-    _ <- statusCodeL := code
-    body <- respBodyL.st
-    _ <- if (body.isEmpty) errorBody.map(respBodyL := _).getOrElse(respBodyL.st) else respBodyL.st
-  } yield ()
+  private def setError(r: Resource, code: Int, body: Option[HTTPBody]): r.ReqRespState[Option[Decision]] = for {
+    _ <- r.setStatusCode(code)
+    // TODO: set response body if not already set
+//     _ <- (r.dataL >=> ReqRespData.responseBodyL) := 
+  } yield (None: Option[Decision])
 
-
-  override def equals(o: Any): Boolean = o match {
-    case o: Decision => o.name == name
-    case _ => false
-  }
-
-  override def toString = "Decision(%s)" format name
-
+  override def toString = "Decision(" + name + ")"    
 }
 
-object Decision {
-  import ReqRespData.statusCodeL
-  import Res._
-  import ResTransformer._
-  import scalaz.syntax.pointed._
+object Machine {
 
-  type FlowState[+T] = State[ReqRespData, T]
-  type ResourceF[T] = Resource => ReqRespData => (ReqRespData, Res[T])
-  type CheckF[T] = (T, ReqRespData) => Boolean
-  type HandlerF[T] = T => FlowState[T]
-  type Handler[T] = Either[HandlerF[T],Decision]
+  def run(r: Resource, first: Decision, init: ReqRespData): IO[ReqRespData] =
+    runDecisions(r, first) eval (init,r.init)
 
-  // TODO: this is a possible type of helper method that can be moved to ReqRespData object
-  private[this] def setStatus[T](code: Int): HandlerF[T] = v => for { _ <- statusCodeL := code } yield v
-
-  def apply[T](decisionName: String, test: ResourceF[T], check: CheckF[T], onSuccess: Handler[T], onFailure: Handler[T]) = new Decision {
-    def name: String = decisionName
-
-    protected def decide(resource: Resource): FlowState[Res[Decision]] = {
-      val nextT = for {
-        value <- resT[FlowState](State((d: ReqRespData) => test(resource)(d)))
-        handler <- resT[FlowState](State((d: ReqRespData) => if (check(value, d)) (d, result(onSuccess)) else (d, result(onFailure))))
-        next <- resT[FlowState](handler match {
-          case Left(f) => f(value) >| empty[Decision]
-          case Right(decision) => result(decision).point[FlowState]
-        })
-      } yield next
-
-      nextT.run
+  def runDecisions(r: Resource, decision: Decision): r.ReqRespState[ReqRespData] = 
+    decision(r).flatMap {
+      case Some(next) => runDecisions(r, next)
+      case None => get[(ReqRespData,r.Context)].map(_._1).lift[IO]
     }
-  }
-
-  def apply[T](decisionName: String,
-               expected: T,
-               test: ResourceF[T],
-               onSuccess: Decision,
-               onFailure: Int): Decision = apply(decisionName, expected, test, Right(onSuccess), Left(setStatus[T](onFailure)))
-
-  def apply[T](decisionName: String,
-               expected: T,
-               test: ResourceF[T],
-               onSuccess: Int,
-               onFailure: Decision): Decision = apply(decisionName, expected, test, Left(setStatus[T](onSuccess)), Right(onFailure))
-
-  def apply[T](decisionName: String,
-               expected: T,
-               test: ResourceF[T],
-               onSuccess: Decision,
-               onFailure: Decision): Decision = apply(decisionName, expected, test, Right(onSuccess), Right(onFailure))
-
-  def apply[T](decisionName: String,
-               expected: T,
-               test: ResourceF[T],
-               onSuccess: Decision,
-               onFailure: HandlerF[T]): Decision = apply(decisionName, expected, test, Right(onSuccess), Left(onFailure))
-
-  def apply[T](decisionName: String,
-               expected: T,
-               test: ResourceF[T],
-               onSuccess: Handler[T],
-               onFailure: Handler[T]): Decision = apply(decisionName, test, (res: T, _: ReqRespData) => res == expected, onSuccess, onFailure)
-
-
-  def apply[T](decisionName: String,
-               test: ResourceF[T],
-               check: CheckF[T],
-               onSuccess: Decision,
-               onFailure: Int): Decision = apply(decisionName, test, check, onSuccess, setStatus[T](onFailure))
-
-  def apply[T](decisionName: String,
-               test: ResourceF[T],
-               check: CheckF[T],
-               onSuccess: Decision,
-               onFailure: Decision): Decision = apply(decisionName, test, check, Right(onSuccess), Right(onFailure))
-
-  def apply[T](decisionName: String,
-               test: ResourceF[T],
-               check: CheckF[T],
-               onSuccess: Decision,
-               onFailure: HandlerF[T]): Decision = apply(decisionName, test, check, Right(onSuccess), Left(onFailure))
-
 }

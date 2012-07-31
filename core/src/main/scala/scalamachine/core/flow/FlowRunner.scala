@@ -16,7 +16,7 @@ trait FlowRunnerBase {
 }
 
 
-
+/*
 class FlowRunner extends FlowRunnerBase {
 
   // TODO: "finish the response" https://github.com/basho/webmachine/blob/master/src/webmachine_decision_core.erl#L65-99
@@ -46,4 +46,4 @@ trait FlowLogging extends FlowRunnerBase {
     logger.debug("finished running decision %s" format decision.name)
     result
   }
-}
+}*/

@@ -9,9 +9,12 @@ import Resource._
 import flow._
 import v3.WebmachineDecisions
 import scalaz.NonEmptyList
+import scalaz.syntax.monad._
 import org.apache.commons.httpclient.util.DateUtil
 import HTTPHeaders._
 import HTTPMethods._
+import ResTransformer._
+import Res._
 
 
 class V3ColBSpecs extends Specification with Mockito with SpecsHelper with WebmachineDecisions { def is =
@@ -81,47 +84,47 @@ class V3ColBSpecs extends Specification with Mockito with SpecsHelper with Webma
                                                                                     end
 
   def testServiceAvailTrue = {
-    testDecisionReturnsDecision(b13, b12, _.serviceAvailable(any) answers mkAnswer(true))
+    testDecisionReturnsDecision(b13, b12, r => r.serviceAvailable returns true.point[r.Result])
   }
 
   def testServiceAvailFalse = {
-    testDecisionReturnsData(b13, _.serviceAvailable(any) answers mkAnswer(false)) {
+    testDecisionReturnsData(b13, r => r.serviceAvailable returns false.point[r.Result]) {
       _.statusCode must beEqualTo(503)
     }
   }
 
   def testKnownMethodTrue = {
-    testDecisionReturnsDecision(b12, b11, _.knownMethods(any) answers mkAnswer(List(GET,POST)))
+    testDecisionReturnsDecision(b12, b11, r => r.knownMethods returns List[HTTPMethod](GET, POST).point[r.Result])
   }
 
   def testKnownMethodFalse = {
-    testDecisionReturnsData(b12, _.knownMethods(any) answers mkAnswer(List(GET)), data = createData(method = POST)) {
+    testDecisionReturnsData(b12, r => r.knownMethods returns List[HTTPMethod](GET).point[r.Result], data = createData(method = POST)) {
       _.statusCode must beEqualTo(501)
     }
   }
 
   def testURITooLongFalse = {
-    testDecisionReturnsDecision(b11, b10, _.uriTooLong(any) answers mkAnswer(false))
+    testDecisionReturnsDecision(b11, b10, r => r.uriTooLong returns false.point[r.Result])
   }
 
   def testURITooLongTrue = {
-    testDecisionReturnsData(b11, _.uriTooLong(any) answers mkAnswer(true)) {
+    testDecisionReturnsData(b11, r => r.uriTooLong returns true.point[r.Result]) {
       _.statusCode must beEqualTo(414)
     }
   }
 
   def testAllowedMethodTrue = {
-    testDecisionReturnsDecision(b10, b9, _.allowedMethods(any) answers mkAnswer(List(GET,POST)))
+    testDecisionReturnsDecision(b10, b9, r => r.allowedMethods returns List[HTTPMethod](GET,POST).point[r.Result])
   }
 
   def testAllowedMethodFalseRespCode = {
-    testDecisionReturnsData(b10,_.allowedMethods(any) answers mkAnswer(List(GET,DELETE)), data = createData(method = POST)) {
+    testDecisionReturnsData(b10, r => r.allowedMethods returns List[HTTPMethod](GET,DELETE).point[r.Result], data = createData(method = POST)) {
       _.statusCode must beEqualTo(405)
     }
   }
 
   def testAllowedMethodFalseAllowHeader = {
-    testDecisionReturnsData(b10, _.allowedMethods(any) answers mkAnswer(List(GET,POST,DELETE)), data = createData(method=PUT)) {
+    testDecisionReturnsData(b10, r => r.allowedMethods returns List[HTTPMethod](GET,POST,DELETE).point[r.Result], data = createData(method=PUT)) {
       _.responseHeader(Allow) must beSome.like {
         case s => s must contain("GET") and contain("POST") and contain("DELETE") // this could be improved (use the actual list above)
       }
@@ -129,86 +132,86 @@ class V3ColBSpecs extends Specification with Mockito with SpecsHelper with Webma
   }
 
   def testMalformedFalse = {
-    testDecisionReturnsDecision(b9, b8, _.isMalformed(any) answers mkAnswer(false))
+    testDecisionReturnsDecision(b9, b8, r => r.isMalformed returns false.point[r.Result])
   }
 
   def testMalformedTrue = {
-    testDecisionReturnsData(b9,_.isMalformed(any) answers mkAnswer(true)) {
+    testDecisionReturnsData(b9, r => r.isMalformed returns true.point[r.Result]) {
       _.statusCode must beEqualTo(400)
     }
   }
 
   def testAuthTrue = {
-    testDecisionReturnsDecision(b8, b7, _.isAuthorized(any) answers mkAnswer(AuthSuccess))
+    testDecisionReturnsDecision(b8, b7, r => r.isAuthorized returns (AuthSuccess: AuthResult).point[r.Result])
   }
 
   def testAuthFalseRespCode = {
-    testDecisionReturnsData(b8,_.isAuthorized(any) answers mkAnswer(AuthFailure("something"))) {
+    testDecisionReturnsData(b8, r => r.isAuthorized returns (AuthFailure("something"): AuthResult).point[r.Result]) {
       _.statusCode must beEqualTo(401)
     }
   }
 
   def testAuthFalseHaltResult = {
-    testDecisionReturnsData(b8, _.isAuthorized(any) answers mkResAnswer(HaltRes(500))) {
+    testDecisionReturnsData(b8, r => r.isAuthorized returns resT[r.ReqRespState](halt[AuthResult](500).point[r.ReqRespState])) {
       _.responseHeader(WWWAuthenticate) must beNone
     }
   }
 
   def testAuthFalseErrorResult = {
-    testDecisionReturnsData(b8, _.isAuthorized(any) answers mkResAnswer(ErrorRes(""))) {
+    testDecisionReturnsData(b8, r => r.isAuthorized returns resT[r.ReqRespState](error[AuthResult]("").point[r.ReqRespState])) {
       _.responseHeader(WWWAuthenticate) must beNone
     }
   }
 
   def testAuthFalseAuthHeader = {
     val headerValue = "somevalue"
-    testDecisionReturnsData(b8, _.isAuthorized(any) answers mkAnswer(AuthFailure(headerValue))) {
+    testDecisionReturnsData(b8, r => r.isAuthorized returns (AuthFailure(headerValue): AuthResult).point[r.Result]) {
       _.responseHeader(WWWAuthenticate) must beSome.which { _ == headerValue }
     }
   }
 
   def testForbiddenFalse = {
-    testDecisionReturnsDecision(b7,b6,_.isForbidden(any) answers mkAnswer(false))
+    testDecisionReturnsDecision(b7,b6, r => r.isForbidden returns false.point[r.Result])
   }
 
   def testForbiddenTrue = {
-    testDecisionReturnsData(b7,_.isForbidden(any) answers mkAnswer(true)) {
+    testDecisionReturnsData(b7, r => r.isForbidden returns true.point[r.Result]) {
       _.statusCode must beEqualTo(403)
     }
   }
 
   def testValidContentHeadersTrue = {
-    testDecisionReturnsDecision(b6,b5,_.contentHeadersValid(any) answers mkAnswer(true))
+    testDecisionReturnsDecision(b6,b5, r => r.contentHeadersValid returns true.point[r.Result])
   }
 
   def testValidContentHeadersFalse = {
-    testDecisionReturnsData(b6,_.contentHeadersValid(any) answers mkAnswer(false)) {
+    testDecisionReturnsData(b6, r => r.contentHeadersValid returns false.point[r.Result]) {
       _.statusCode must beEqualTo(501)
     }
   }
 
   def testKnownContentTypeTrue = {
-    testDecisionReturnsDecision(b5,b4,_.isKnownContentType(any) answers mkAnswer(true))
+    testDecisionReturnsDecision(b5,b4, r => r.isKnownContentType returns true.point[r.Result])
   }
 
   def testKnownContentTypeFalse = {
-    testDecisionReturnsData(b5,_.isKnownContentType(any) answers mkAnswer(false)) {
+    testDecisionReturnsData(b5, r => r.isKnownContentType returns false.point[r.Result]) {
       _.statusCode must beEqualTo(415)
     }
   }
 
   def testIsValidEntityLengthTrue = {
-    testDecisionReturnsDecision(b4,b3,_.isValidEntityLength(any) answers mkAnswer(true))
+    testDecisionReturnsDecision(b4,b3, r => r.isValidEntityLength returns true.point[r.Result])
   }
 
   def testIsValidEntityLengthFalse = {
-    testDecisionReturnsData(b4,_.isValidEntityLength(any) answers mkAnswer(false)) {
+    testDecisionReturnsData(b4, r => r.isValidEntityLength returns false.point[r.Result]) {
       _.statusCode must beEqualTo(413)
     }
   }
 
   def testRequestIsOptions = {
-    testDecisionReturnsData(b3,_.options(any) answers mkAnswer(Map[HTTPHeader,String]()), data = createData(method=OPTIONS)) {
+    testDecisionReturnsData(b3, r => r.options returns Map[HTTPHeader,String]().point[r.Result], data = createData(method=OPTIONS)) {
       _.statusCode must beEqualTo(200)
     }
   }
@@ -217,7 +220,7 @@ class V3ColBSpecs extends Specification with Mockito with SpecsHelper with Webma
     val XA = createHeader("X-A")
     val XB = createHeader("X-B")
     val testHeaders =  Map(XA -> "a", XB -> "b")
-    testDecisionReturnsData(b3,_.options(any) answers mkAnswer(testHeaders), data = createData(method=OPTIONS)) {
+    testDecisionReturnsData(b3, r => r.options returns testHeaders.point[r.Result], data = createData(method=OPTIONS)) {
       _.responseHeaders must containAllOf(testHeaders.toList)
     }
   }

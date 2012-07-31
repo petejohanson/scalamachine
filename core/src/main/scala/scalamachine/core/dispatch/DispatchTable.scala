@@ -40,7 +40,7 @@ trait DispatchTable[-A, B, +W[_]] extends Dispatch {
   }
 
   // default flow runner
-  def flowRunner = new FlowRunner
+  def flowRunner: FlowRunnerBase // = new FlowRunner
 
   // the HOST (excluding port) split by "."
   protected def host(fullName: String): List[String] = {
