@@ -543,7 +543,10 @@ trait WebmachineDecisions {
       val createPath: r.Result[Unit] = for {
         mbCreatePath <- r.createPath
         createPath <- resT[r.ReqRespState](
-          mbCreatePath.fold(error[String]("create path returned none"))(result(_)).point[r.ReqRespState]
+          mbCreatePath.cata(
+            none = error[String]("create path returned none"),
+            some = result(_)
+          ).point[r.ReqRespState]
         )
 
         // set dispatch path to new path
@@ -621,7 +624,10 @@ trait WebmachineDecisions {
         // find content providing function given chosen content type and produce body, setting it in the response
         mbChosenCType <- (r.dataL >=> metadataL >=> contentTypeL).lift[IO].liftM[ResT]
         chosenCType <- resT[r.ReqRespState](
-          mbChosenCType.fold(error[ContentType]("internal flow error, missing chosen ctype in o18"))(result(_)).point[r.ReqRespState]
+          mbChosenCType.cata(
+            none = error[ContentType]("internal flow error, missing chosen ctype in o18"), 
+            some = result(_)
+          ).point[r.ReqRespState]
         )
 
         mbProvidedF <- r.contentTypesProvided map {
@@ -807,10 +813,16 @@ trait WebmachineDecisions {
       
       charsetter <- (((mbProvidedCh |@| mbCharset) {
         (p,c)  => p.find(_._1 === c)
-      }).join.fold(id)(_._2)).point[r.Result]
+      }).join.cata(
+        none = id,
+        some = _._2
+      )).point[r.Result]
       encoder <- (((mbProvidedEnc |@| mbEncoding) {
         (p,e) => p.find(_._1 === e)
-      }).join.fold(id)(_._2)).point[r.Result]
+      }).join.cata(
+        none = id,
+        some = _._2
+      )).point[r.Result]
 
     } yield body match {
       case FixedLengthBody(bytes) => FixedLengthBody(encoder(charsetter(bytes)))
