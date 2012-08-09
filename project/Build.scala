@@ -30,7 +30,7 @@ object BuildSettings {
     publishMavenStyle := true,
     pomIncludeRepository := { x => false },
     pomExtra := (
-      <url>https://github.com/jrwest/scalamachine/wiki</url>
+      <url>https://github.com/stackmob/scalamachine</url>
         <licenses>
           <license>
             <name>Apache 2</name>
@@ -39,8 +39,8 @@ object BuildSettings {
           </license>
         </licenses>
         <scm>
-          <url>git@github.com:jrwest/scalamachine.git</url>
-          <connection>scm:git:git@github.com:jrwest/scalamachine.git</connection>
+          <url>git@github.com:stackmob/scalamachine.git</url>
+          <connection>scm:git:git@github.com:stackmob/scalamachine.git</connection>
         </scm>
         <developers>
           <developer>
