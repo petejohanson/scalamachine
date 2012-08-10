@@ -1,6 +1,5 @@
 package scalamachine.scalaz
 
-import _root_.scalaz._
 import scalamachine.core.HTTPMethod
 
 /**
@@ -13,6 +12,8 @@ import scalamachine.core.HTTPMethod
  * Time: 2:28 PM
  */
 
-package object http extends Equals {
+package object http {
+  import scalaz._
+  import Scalaz._
   implicit val httpMethodEqual: Equal[HTTPMethod] = equalA[HTTPMethod]
 }
