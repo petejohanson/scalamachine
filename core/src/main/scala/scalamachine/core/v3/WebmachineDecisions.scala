@@ -760,7 +760,7 @@ trait WebmachineDecisions {
                        notModified: Res[Decision])(test: (Long,Long) => Boolean): r.Result[Decision] = {
 
     def isModified(mbLastMod: Option[Date], mbHeaderDate: Option[String]) =
-      (mbLastMod |@| mbHeaderDate.map(Util.parseDate(_)).getOrElse(none)) {
+      ^(mbLastMod, mbHeaderDate.map(Util.parseDate(_)).getOrElse(none)) {
         (t1,t2) => test(t1.getTime,t2.getTime)
       } getOrElse false
 
@@ -811,13 +811,13 @@ trait WebmachineDecisions {
       mbCharset <- (r.dataL >=> metadataL >=> chosenCharsetL).lift[IO].liftM[ResT]
       mbEncoding <- (r.dataL >=> metadataL >=> chosenEncodingL).lift[IO].liftM[ResT]
       
-      charsetter <- (((mbProvidedCh |@| mbCharset) {
+      charsetter <- ((^(mbProvidedCh,mbCharset) {
         (p,c)  => p.find(_._1 === c)
       }).join.cata(
         none = id,
         some = _._2
       )).point[r.Result]
-      encoder <- (((mbProvidedEnc |@| mbEncoding) {
+      encoder <- ((^(mbProvidedEnc,mbEncoding) {
         (p,e) => p.find(_._1 === e)
       }).join.cata(
         none = id,
