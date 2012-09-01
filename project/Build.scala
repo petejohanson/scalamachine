@@ -14,7 +14,7 @@ object BuildSettings {
 
   val org = "com.stackmob"
   val vsn = "0.2.0-SNAPSHOT"
-  val scalaVsn = "2.10.0-M6"
+  val scalaVsn = "2.10.0-M7"
 
   lazy val publishSetting = publishTo <<= version { v: String =>
       val nexus = "https://oss.sonatype.org/"
@@ -67,7 +67,7 @@ object BuildSettings {
 }
 
 object Dependencies {
-  lazy val scalaz7        = "org.scalaz"              %% "scalaz-iteratee"              % "7.0.0-M1"        % "compile" withSources()
+  lazy val scalaz7        = "org.scalaz"              %% "scalaz-iteratee"              % "7.0.0-M3"        % "compile" withSources()
   lazy val slf4j          = "org.slf4j"               % "slf4j-api"                     % "1.6.4"           % "compile"
   // Don't want to keep this dependency long term but for now its fastest way to get date parsing for http
   lazy val commonsHttp    = "commons-httpclient"      % "commons-httpclient"            % "3.1"             % "compile" withSources()
@@ -75,7 +75,7 @@ object Dependencies {
   lazy val jetty          = "org.eclipse.jetty"       % "jetty-webapp"                  % "7.3.0.v20110203" % "container"
   lazy val finagle        = "com.twitter"             %% "finagle-http"                 % "1.9.12"          % "compile" withSources()
   lazy val logback        = "ch.qos.logback"          % "logback-classic"               % "1.0.0"           % "compile" withSources()
-  lazy val specs2         = "org.specs2"              %% "specs2"                       % "1.11"            % "test" withSources()
+  lazy val specs2         = "org.specs2"              %% "specs2"                       % "1.12.1.1"        % "test" withSources()
   lazy val scalacheck     = "org.scalacheck"          %% "scalacheck"                   % "1.10.0"          % "test" withSources()
   lazy val mockito        = "org.mockito"             % "mockito-all"                   % "1.9.0"           % "test" withSources()
   lazy val hamcrest       = "org.hamcrest"            % "hamcrest-all"                  % "1.1"             % "test" withSources()
