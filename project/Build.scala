@@ -13,7 +13,7 @@ import Keys._
 object BuildSettings {
 
   val org = "com.stackmob"
-  val vsn = "0.1.0-SNAPSHOT"
+  val vsn = "0.1.1-SNAPSHOT"
   val scalaVsn = "2.9.1"
 
   lazy val publishSetting = publishTo <<= version { v: String =>
