@@ -75,6 +75,7 @@ object Dependencies {
   lazy val commonsHttp    = "commons-httpclient"      % "commons-httpclient"            % "3.1"             % "compile" withSources()
   lazy val liftweb        = "net.liftweb"             %% "lift-webkit"                  % "2.4"             % "compile" withSources()
   lazy val jetty          = "org.eclipse.jetty"       % "jetty-webapp"                  % "7.3.0.v20110203" % "container"
+  lazy val servletApi     = "javax.servlet"           % "servlet-api"                   % "2.5"             % "compile" withSources()
   lazy val finagle        = "com.twitter"             %% "finagle-http"                 % "1.9.12"          % "compile" withSources()
   lazy val logback        = "ch.qos.logback"          % "logback-classic"               % "1.0.0"           % "compile" withSources()
   lazy val specs2         = "org.specs2"              %% "specs2"                       % "1.9"             % "test" withSources()
@@ -98,7 +99,7 @@ object ScalamachineBuild extends Build {
 
   lazy val scalamachine = Project("scalamachine", file("."),
     settings = standardSettings ++ publishSettings ++ Seq(publishArtifact in Compile := false),
-    aggregate = Seq(core,scalaz6utils,scalaz7utils,lift,netty)
+    aggregate = Seq(core,scalaz6utils,scalaz7utils,servlet,lift,netty)
   )
 
   lazy val core = Project("scalamachine-core", file("core"),
@@ -131,6 +132,15 @@ object ScalamachineBuild extends Build {
         libraryDependencies ++= Seq(scalaz7)
       )
   )
+
+  lazy val servlet = Project("scalamachine-servlet", file("servlet"),
+    dependencies = Seq(core), 
+    settings = standardSettings ++ publishSettings ++
+      Seq(
+        name := "scalamachine-servlet",
+        libraryDependencies ++= Seq(servletApi)
+      )
+  )
   
   lazy val lift = Project("scalamachine-lift", file("lift"),
     dependencies = Seq(core), 
@@ -149,7 +159,16 @@ object ScalamachineBuild extends Build {
         libraryDependencies ++= Seq(finagle)
       )
   )
-  
+
+  lazy val servletExample = Project("scalamachine-servlet-example", file("examples/servlet"),
+    dependencies = Seq(servlet),
+    settings = standardSettings ++ webSettings ++
+      Seq(
+        name := "scalamachine-servlet-example",
+        libraryDependencies ++= Seq(jetty,logback)
+      )
+  )
+
   lazy val liftExample = Project("scalamachine-lift-example", file("examples/lift"),
     dependencies = Seq(lift),
     settings = standardSettings ++ webSettings ++
@@ -172,10 +191,10 @@ object ScalamachineBuild extends Build {
     dependencies = Seq(netty),
     settings = standardSettings ++
       Seq(
-	name := "scalamachine-netty-example", 
+        name := "scalamachine-netty-example",
         libraryDependencies ++= Seq(logback)
-    )
-  )              
+      )
+  )
 
 }
 
