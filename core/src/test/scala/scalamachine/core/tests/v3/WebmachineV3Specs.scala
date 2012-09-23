@@ -1,27 +1,24 @@
-package scalamachine.core
-package tests
+package scalamachine.core.tests
+package v3
 
 import org.specs2._
 import mock._
 import org.mockito.{Matchers => MM}
-import scalamachine.core.ResT
-import Resource._
-import flow._
-import v3.WebmachineDecisions
-import Res._
+import scalamachine.core.{ResT, Resource, Util, ContentType, HTTPBody, FixedLengthBody, LazyStreamBody}
+import scalamachine.core.Resource._
+import scalamachine.core.flow._
+import scalamachine.core.v3.WebmachineDecisions
+import scalamachine.core.Res._
 import org.apache.commons.httpclient.util.DateUtil
 import java.util.Date
-import HTTPHeaders._
-import HTTPMethods._
-import ReqRespData.Metadata
+import scalamachine.core.HTTPHeaders._
+import scalamachine.core.HTTPMethods._
+import scalamachine.core.ReqRespData._
 import scalaz.iteratee.{IterateeT, EnumeratorT}
 import scalaz.effect.IO
 import IO._
 import scalaz.StateT._
-import ReqRespData._
 import scalaz.syntax.monad._
-import Resource._
-import ResT._
 
 
 class WebmachineV3Specs extends Specification with Mockito with SpecsHelper with WebmachineDecisions { def is = 

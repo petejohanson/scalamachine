@@ -1,4 +1,5 @@
 package scalamachine.core.tests
+package v3
 
 import org.specs2._
 import matcher.MatchResult
