@@ -7,6 +7,7 @@ import scalaz.effect.IO
 import State._
 import scalamachine.core._
 import flow._
+import scalamachine.core.dispatch.RoutingTable
 
 class WebmachineRunnerSpecs 
   extends Specification 

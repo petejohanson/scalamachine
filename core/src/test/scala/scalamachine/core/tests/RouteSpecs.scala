@@ -5,7 +5,7 @@ import scalamachine.core.dispatch.Route._
 import org.scalacheck.{Arbitrary, Prop, Gen}
 import Prop._
 import scalamachine.core._
-import dispatch._
+import scalamachine.core.dispatch._
 
 
 class RouteSpecs extends Specification with ScalaCheck { def is =

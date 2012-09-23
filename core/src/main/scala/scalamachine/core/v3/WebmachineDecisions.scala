@@ -16,7 +16,6 @@ import scalaz.StateT._
 import scalaz.Id
 import scalaz.effect.IO
 import IO._
-import internal.ext._
 import Res._
 import ResT._
 import ReqRespData._
