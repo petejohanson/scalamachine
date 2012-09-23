@@ -52,7 +52,7 @@ case class ErrorRes(errorBody: HTTPBody) extends Res[Nothing]
  */
 case object EmptyRes extends Res[Nothing]
 
-trait ResOps[A] {
+sealed trait ResOps[A] {
   def res: Res[A]
 
   /**
