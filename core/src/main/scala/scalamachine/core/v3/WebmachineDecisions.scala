@@ -31,7 +31,7 @@ trait WebmachineDecisions {
   /* Service Available? */
   lazy val b13: Decision = new Decision { 
     val name = "v3b13"
-    protected def decide(r: Resource): r.Result[Decision] = 
+    def apply(r: Resource): r.Result[Decision] = 
       r.serviceAvailable.flatMap {
         isAvail => 
           if (isAvail) b12.point[r.Result]
@@ -43,7 +43,7 @@ trait WebmachineDecisions {
   lazy val b12: Decision = 
     new Decision {
       val name = "v3b12"
-      protected def decide(r: Resource): r.Result[Decision] = for {
+      def apply(r: Resource): r.Result[Decision] = for {
           known <- r.knownMethods
           method <- (r.dataL >=> methodL).lift[IO].liftM[ResT]
           d <- if (known.contains(method)) b11.point[r.Result]
@@ -54,7 +54,7 @@ trait WebmachineDecisions {
   /* URI Too Long? */
   lazy val b11: Decision = new Decision {
     val name = "v3b11"
-    protected def decide(r: Resource): r.Result[Decision] = 
+    def apply(r: Resource): r.Result[Decision] = 
       r.uriTooLong.flatMap {
         isTooLong => 
           if (isTooLong) r.haltWithCode[Decision](414)
@@ -66,7 +66,7 @@ trait WebmachineDecisions {
   /* Allowed Methods */
   lazy val b10: Decision = new Decision { 
     val name = "v3b10"
-    protected def decide(r: Resource): r.Result[Decision] =
+    def apply(r: Resource): r.Result[Decision] =
       for {
         allowed <- r.allowedMethods
         method <- (r.dataL >=> methodL).lift[IO].liftM[ResT]
@@ -81,7 +81,7 @@ trait WebmachineDecisions {
   /* Malformed Request? */
   lazy val b9: Decision = new Decision {
     val name = "v3b9"
-    def decide(r: Resource): r.Result[Decision] = r.isMalformed.flatMap {
+    def apply(r: Resource): r.Result[Decision] = r.isMalformed.flatMap {
       isMalformed => 
         if (isMalformed) r.haltWithCode[Decision](400)
         else b8.point[r.Result]
@@ -92,7 +92,7 @@ trait WebmachineDecisions {
   /* Is Authorized? */
   lazy val b8: Decision = new Decision {
     val name = "v3b8"
-    protected def decide(r: Resource): r.Result[Decision] = 
+    def apply(r: Resource): r.Result[Decision] = 
       for {
         authRes <- r.isAuthorized
         d <- authRes.fold(
@@ -108,7 +108,7 @@ trait WebmachineDecisions {
   /* Is Forbidden? */
   lazy val b7: Decision = new Decision {
     val name = "v3b7"
-    protected def decide(r: Resource): r.Result[Decision] = 
+    def apply(r: Resource): r.Result[Decision] = 
       r.isForbidden.flatMap { 
         isForbidden => 
           if (isForbidden) r.haltWithCode[Decision](403)
@@ -119,7 +119,7 @@ trait WebmachineDecisions {
   /* Content-* Headers Are Valid? */
   lazy val b6: Decision = new Decision {
     val name ="v3b6"
-    protected def decide(r: Resource): r.Result[Decision] = 
+    def apply(r: Resource): r.Result[Decision] = 
       r.contentHeadersValid.flatMap { 
         hdrsValid => 
           if (hdrsValid) b5.point[r.Result]
@@ -130,7 +130,7 @@ trait WebmachineDecisions {
   /* Is Known Content-Type? */
   lazy val b5: Decision = new Decision {
     val name = "v3b5"
-    protected def decide(r: Resource): r.Result[Decision] =
+    def apply(r: Resource): r.Result[Decision] =
       r.isKnownContentType.flatMap { 
         isKnown =>
           if (isKnown) b4.point[r.Result]
@@ -141,7 +141,7 @@ trait WebmachineDecisions {
   /* Request Entity Too Large? */
   lazy val b4: Decision = new Decision { 
     val name = "v3b4"
-    protected def decide(r: Resource): r.Result[Decision] =
+    def apply(r: Resource): r.Result[Decision] =
       r.isValidEntityLength.flatMap {
         isValidLen =>
           if (isValidLen) b3.point[r.Result]
@@ -153,7 +153,7 @@ trait WebmachineDecisions {
   /* OPTIONS? */
   lazy val b3: Decision = new Decision {
     val name = "v3b3"
-    protected def decide(r: Resource): r.Result[Decision] = 
+    def apply(r: Resource): r.Result[Decision] = 
       (r.dataL >=> methodL).lift[IO].liftM[ResT].flatMap {
         case OPTIONS => respondToOptions(r)
         case _ => c3.point[r.Result]
@@ -171,7 +171,7 @@ trait WebmachineDecisions {
 
     val name = "v3c3"
 
-    protected def decide(r: Resource): r.Result[Decision] = {
+    def apply(r: Resource): r.Result[Decision] = {
       def firstOrDefault(provided: r.ContentTypesProvided): ContentType =
         provided.toNel.map(_.head._1) getOrElse defaultContentType
 
@@ -192,7 +192,7 @@ trait WebmachineDecisions {
   lazy val c4: Decision = new Decision {
     val name = "v3c4"
 
-    protected def decide(r: Resource): r.Result[Decision] = for {
+    def apply(r: Resource): r.Result[Decision] = for {
       acceptHeader <- ((r.dataL >=> requestHeadersL) member Accept).map(_ | "*/*").lift[IO].liftM[ResT]
       provided <- r.contentTypesProvided.map(_.unzip._1)
       ctype <- Util.chooseMediaType(provided, acceptHeader).point[r.Result]
@@ -205,7 +205,7 @@ trait WebmachineDecisions {
   lazy val d4: Decision = new Decision {
     val name = "v3d4"
 
-    protected def decide(r: Resource): r.Result[Decision] = {
+    def apply(r: Resource): r.Result[Decision] = {
       ((r.dataL >=> requestHeadersL) member AcceptLanguage).lift[IO]
         .liftM[ResT]
         .map(_ >| d5 | e5)
@@ -216,7 +216,7 @@ trait WebmachineDecisions {
   lazy val d5: Decision = new Decision {
     val name = "v3d5"
 
-    protected def decide(r: Resource): r.Result[Decision] = r.isLanguageAvailable.flatMap {
+    def apply(r: Resource): r.Result[Decision] = r.isLanguageAvailable.flatMap {
       isLangAvail => 
         if (isLangAvail) e5.point[r.Result]
         else r.haltWithCode[Decision](406)
@@ -227,7 +227,7 @@ trait WebmachineDecisions {
   lazy val e5: Decision = new Decision {
     val name = "v3e5"
 
-    protected def decide(r: Resource): r.Result[Decision] = 
+    def apply(r: Resource): r.Result[Decision] = 
       ((r.dataL >=> requestHeadersL) member AcceptCharset).lift[IO]
          .liftM[ResT]
          .flatMap(_ >| e6.point[r.Result] | chooseCharset(r, "*"))
@@ -236,7 +236,7 @@ trait WebmachineDecisions {
   /* Acceptable Charset Available? */
   lazy val e6: Decision = new Decision {
     val name = "v3e6" 
-    protected def decide(r: Resource): r.Result[Decision] = 
+    def apply(r: Resource): r.Result[Decision] = 
       ((r.dataL >=> requestHeadersL) member AcceptCharset).map(_ | "*")
         .lift[IO]
         .liftM[ResT]
@@ -246,7 +246,7 @@ trait WebmachineDecisions {
   /* Accept-Encoding Exists? */
   lazy val f6: Decision = new Decision {
     val name = "v3f6" 
-    protected def decide(r: Resource): r.Result[Decision] = for {
+    def apply(r: Resource): r.Result[Decision] = for {
       media <- (r.dataL >=> metadataL >=> contentTypeL).map(_ | defaultContentType).lift[IO].liftM[ResT]
       charset <- (r.dataL >=> metadataL >=> chosenCharsetL).map(_.map(";charset=" + _) | "").lift[IO].liftM[ResT]
       _ <- ((r.dataL >=> responseHeadersL) += ((ContentTypeHeader, media.toHeader + charset))).lift[IO].liftM[ResT]
@@ -258,7 +258,7 @@ trait WebmachineDecisions {
   /* Acceptable Encoding Available? */
   lazy val f7: Decision = new Decision {
     val name = "v3f7"
-    protected def decide(r: Resource): r.Result[Decision] =
+    def apply(r: Resource): r.Result[Decision] =
       (r.dataL >=> requestHeadersL member AcceptEncoding).map(_ | "identity;q=1.0,*;q=0.5").lift[IO]
         .liftM[ResT]
         .flatMap(chooseEncoding(r, _))      
@@ -267,7 +267,7 @@ trait WebmachineDecisions {
   /* Resource Exists? */
   lazy val g7: Decision = new Decision {
     val name = "v3g7"
-    protected def decide(r: Resource): r.Result[Decision] = {
+    def apply(r: Resource): r.Result[Decision] = {
       val variances: r.Result[String] = for {
         extra <- r.variances
         ctypes <- r.contentTypesProvided
@@ -293,14 +293,14 @@ trait WebmachineDecisions {
   /* If-Match Exists? */
   lazy val g8: Decision = new Decision {
     val name = "v3g8" 
-    protected def decide(r: Resource): r.Result[Decision] = 
+    def apply(r: Resource): r.Result[Decision] = 
       headerExists(r, IfMatch, g9, h10)
   }
 
   /* If-Match: *? */
   lazy val g9: Decision = new Decision {
     val name = "v3g9"
-    protected def decide(r: Resource): r.Result[Decision] = 
+    def apply(r: Resource): r.Result[Decision] = 
       (r.dataL >=> requestHeadersL member IfMatch)
         .map(_.filterNot(_ === "*") >| g11 | h10)
         .lift[IO]
@@ -310,7 +310,7 @@ trait WebmachineDecisions {
   /* Etag in If-Match? */
   lazy val g11: Decision = new Decision {
     val name = "v3g11" 
-    protected def decide(r: Resource): r.Result[Decision] = {
+    def apply(r: Resource): r.Result[Decision] = {
       testEtag(r, IfMatch) flatMap {
         doesMatch => {
           if (doesMatch) h10.point[r.Result]
@@ -323,42 +323,42 @@ trait WebmachineDecisions {
   /* If-Match Exists? - note: this differs from v3 diagram but follows erlang implementation */
   lazy val h7: Decision = new Decision {
     val name = "v3h7"
-    protected def decide(r: Resource): r.Result[Decision] = 
+    def apply(r: Resource): r.Result[Decision] = 
       headerExists(r, IfMatch, 412, i7)
   }
 
   /* If-Unmodified-Since Exists? */
   lazy val h10: Decision = new Decision {
     val name = "v3h10"
-    protected def decide(r: Resource): r.Result[Decision] = 
+    def apply(r: Resource): r.Result[Decision] = 
       headerExists(r, IfUnmodifiedSince, h11, i12)
   }
 
   /* If-Unmodified-Since Valid Date? */
   lazy val h11: Decision = new Decision {
     val name = "v3h11"
-    protected def decide(r: Resource): r.Result[Decision] = 
+    def apply(r: Resource): r.Result[Decision] = 
       validateDate(r, IfUnmodifiedSince, h12, i12)
   }
 
   /* Last-Modified > If-UnmodifiedSince? */
   lazy val h12: Decision = new Decision {
     val name = "v3h11"
-    protected def decide(r: Resource): r.Result[Decision] = 
+    def apply(r: Resource): r.Result[Decision] = 
       testDate(r, IfUnmodifiedSince, halt(412), result(i12)) { _ > _ }
   }
 
   /* Moved Permanently? (Apply Put to Different URI?) */
   lazy val i4: Decision = new Decision {
     val name = "v3i4" 
-    protected def decide(r: Resource): r.Result[Decision] =
+    def apply(r: Resource): r.Result[Decision] =
       moved(r, 301, p3) { r.movedPermanently }
   }
   
   /* PUT? (after finding resource doesn't exist) */
   lazy val i7: Decision = new Decision {
     val name = "v3i7"
-    protected def decide(r: Resource): r.Result[Decision] = (r.dataL >=> methodL).lift[IO].liftM[ResT].map { 
+    def apply(r: Resource): r.Result[Decision] = (r.dataL >=> methodL).lift[IO].liftM[ResT].map { 
       method => 
         if (method === PUT) i4
         else k7
@@ -368,14 +368,14 @@ trait WebmachineDecisions {
   /* If-None-Match Exists? */
   lazy val i12: Decision = new Decision {
     val name = "v3i12"
-    protected def decide(r: Resource): r.Result[Decision] = 
+    def apply(r: Resource): r.Result[Decision] = 
       headerExists(r, IfNoneMatch, i13, l13)
   }
 
   /* If-None-Match: *? */
   lazy val i13: Decision = new Decision {
     val name = "v3i13"
-    protected def decide(r: Resource): r.Result[Decision] = 
+    def apply(r: Resource): r.Result[Decision] = 
       (r.dataL >=> requestHeadersL member IfNoneMatch)
         .map(_.filterNot(_ === "*") >| k13 | j18)
         .lift[IO]
@@ -384,7 +384,7 @@ trait WebmachineDecisions {
 
   lazy val j18: Decision = new Decision {
     val name = "v3j18" 
-    protected def decide(r: Resource): r.Result[Decision] = (r.dataL >=> methodL).lift[IO].liftM[ResT].flatMap {
+    def apply(r: Resource): r.Result[Decision] = (r.dataL >=> methodL).lift[IO].liftM[ResT].flatMap {
       method => 
         if (List(GET,HEAD).contains(method)) r.haltWithCode[Decision](304)
         else r.haltWithCode[Decision](412)
@@ -394,14 +394,14 @@ trait WebmachineDecisions {
   /* Resource Moved Permanently? (not PUT request) */
   lazy val k5: Decision = new Decision {
     val name = "v3k5"
-    protected def decide(r: Resource): r.Result[Decision] = 
+    def apply(r: Resource): r.Result[Decision] = 
       moved(r, 301,l5) { r.movedPermanently }
   }
 
   /* Resource Existed Previously ? */
   lazy val k7: Decision = new Decision {
     val name = "v3k7"
-    protected def decide(r: Resource): r.Result[Decision] = r.previouslyExisted map { 
+    def apply(r: Resource): r.Result[Decision] = r.previouslyExisted map { 
       existed => 
         if (existed) k5
         else l7
@@ -410,7 +410,7 @@ trait WebmachineDecisions {
 
   lazy val k13: Decision = new Decision {
     val name = "v3k13"
-    protected def decide(r: Resource): r.Result[Decision] = 
+    def apply(r: Resource): r.Result[Decision] = 
       testEtag(r, IfNoneMatch) map {
         doesMatch => 
           if (doesMatch) j18
@@ -421,14 +421,14 @@ trait WebmachineDecisions {
   /* Moved Temporarily? */
   lazy val l5: Decision = new Decision {
     val name = "v3l5"
-    protected def decide(r: Resource): r.Result[Decision] = 
+    def apply(r: Resource): r.Result[Decision] = 
       moved(r, 307, m5) { r.movedTemporarily }
   }
 
   /* POST? (after determining resource d.n.e) */
   lazy val l7: Decision = new Decision {
     val name = "v3l7"
-    protected def decide(r: Resource): r.Result[Decision] = (r.dataL >=> methodL).lift[IO].liftM[ResT].flatMap {
+    def apply(r: Resource): r.Result[Decision] = (r.dataL >=> methodL).lift[IO].liftM[ResT].flatMap {
       method =>
         if (method === POST) m7.point[r.Result]
         else r.haltWithCode[Decision](404)
@@ -439,21 +439,21 @@ trait WebmachineDecisions {
   /* If-Modified-Since Exists? */
   lazy val l13: Decision = new Decision {
     val name = "v3l13"
-    protected def decide(r: Resource): r.Result[Decision] = 
+    def apply(r: Resource): r.Result[Decision] = 
       headerExists(r, IfModifiedSince, l14, m16)
   }
 
   /* If-Modified-Since Valid Date? */
   lazy val l14: Decision = new Decision {
     val name = "v3l14"
-    protected def decide(r: Resource): r.Result[Decision] = 
+    def apply(r: Resource): r.Result[Decision] = 
       validateDate(r, IfModifiedSince, l15, m16)
   }
 
   /* If-Modified-Since in Future? */
   lazy val l15: Decision = new Decision {
     val name = "v3l15"
-    protected def decide(r: Resource): r.Result[Decision] = for {
+    def apply(r: Resource): r.Result[Decision] = for {
       // since we have already validated the date, in the off chance something gets messed
       // up we handle an invalid date here and proceed accordingly
       headerDate <- (r.dataL >=> requestHeadersL member IfModifiedSince).map(_ | "").lift[IO].liftM[ResT]
@@ -464,14 +464,14 @@ trait WebmachineDecisions {
   /* Last Modified > If-Modified-Since */
   lazy val l17: Decision = new Decision {
     val name = "v3l17"
-    protected def decide(r: Resource): r.Result[Decision] = 
+    def apply(r: Resource): r.Result[Decision] = 
       testDate(r, IfModifiedSince, result(m16), halt(304)){ _ > _ }
   }
 
   /* POST? */
   lazy val m5: Decision = new Decision {
     val name = "v3m5"
-    protected def decide(r: Resource): r.Result[Decision] = (r.dataL >=> methodL).lift[IO].liftM[ResT].flatMap {
+    def apply(r: Resource): r.Result[Decision] = (r.dataL >=> methodL).lift[IO].liftM[ResT].flatMap {
       method => 
         if (method === POST) n5.point[r.Result]
         else r.haltWithCode[Decision](410)
@@ -481,7 +481,7 @@ trait WebmachineDecisions {
   /* Allow Missing Post? */
   lazy val m7: Decision = new Decision {
     val name = "v3m7"
-    protected def decide(r: Resource): r.Result[Decision] = 
+    def apply(r: Resource): r.Result[Decision] = 
       r.allowMissingPost flatMap {
         allowMissing =>
           if (allowMissing) n11.point[r.Result]
@@ -492,7 +492,7 @@ trait WebmachineDecisions {
   /* DELETE? */
   lazy val m16: Decision = new Decision {
     val name = "v3m16"
-    protected def decide(r: Resource): r.Result[Decision] = (r.dataL >=> methodL).lift[IO].liftM[ResT] map {
+    def apply(r: Resource): r.Result[Decision] = (r.dataL >=> methodL).lift[IO].liftM[ResT] map {
       method => if (method === DELETE) m20 else n16
     }
   }
@@ -500,7 +500,7 @@ trait WebmachineDecisions {
   /* Delete Enacted? */
   lazy val m20: Decision = new Decision {
     val name = "v3m20"
-    protected def decide(r: Resource): r.Result[Decision] = 
+    def apply(r: Resource): r.Result[Decision] = 
       r.deleteResource flatMap {
         ok =>
           if (ok) m20b.point[r.Result]
@@ -511,7 +511,7 @@ trait WebmachineDecisions {
   /* Delete Enacted? */
   lazy val m20b: Decision = new Decision {
     val name = "v3m20b"
-    protected def decide(r: Resource): r.Result[Decision] = 
+    def apply(r: Resource): r.Result[Decision] = 
       r.deleteCompleted flatMap {
         completed =>
           if (completed) o20.point[r.Result]
@@ -522,7 +522,7 @@ trait WebmachineDecisions {
   /* Resource allows POST to missing resource */
   lazy val n5: Decision = new Decision {
     val name = "v3n5"
-    protected def decide(r: Resource): r.Result[Decision] = 
+    def apply(r: Resource): r.Result[Decision] = 
       r.allowMissingPost flatMap {
         allowMissing =>
           if (allowMissing) n11.point[r.Result]
@@ -533,7 +533,7 @@ trait WebmachineDecisions {
   /* Redirect? (also handle POST requests here) */
   lazy val n11: Decision = new Decision {
     val name = "v3n11"
-    protected def decide(r: Resource): r.Result[Decision] = {
+    def apply(r: Resource): r.Result[Decision] = {
       val processPost: r.Result[Unit] = for {
         processedOk <- r.processPost
         _ <- if (processedOk) encodeBodyIfSet(r)
@@ -584,7 +584,7 @@ trait WebmachineDecisions {
   /* POST? */
   lazy val n16: Decision = new Decision {
     val name = "v3n16"
-    protected def decide(r: Resource): r.Result[Decision] = 
+    def apply(r: Resource): r.Result[Decision] = 
       (r.dataL >=> methodL).lift[IO].liftM[ResT] map {
         method => if (method === POST) n11 else o16
       }
@@ -593,7 +593,7 @@ trait WebmachineDecisions {
   /* Is Conflict? (PUT requests are also handled here) */
   lazy val o14: Decision = new Decision {
     val name = "v3o14"
-    protected def decide(r: Resource): r.Result[Decision] = for {
+    def apply(r: Resource): r.Result[Decision] = for {
       isConflict <- r.isConflict
       _ <- if (isConflict) r.haltWithCode[Boolean](409)
            else acceptContent(r)
@@ -603,7 +603,7 @@ trait WebmachineDecisions {
   /* PUT? */
   lazy val o16: Decision = new Decision {
     val name = "v3016"
-    protected def decide(r: Resource): r.Result[Decision] = 
+    def apply(r: Resource): r.Result[Decision] = 
       (r.dataL >=> methodL).lift[IO].liftM[ResT] map {
         method => if (method === PUT) o14 else o18
       }
@@ -612,7 +612,7 @@ trait WebmachineDecisions {
   /* Multiple Representations?  also do GET/HEAD body rendering here */
   lazy val o18: Decision = new Decision {
     val name = "v3o18"
-    protected def decide(r: Resource): r.Result[Decision] = {
+    def apply(r: Resource): r.Result[Decision] = {
       def ifGetOrHead[A](isTrue: Boolean, resourceCall: => r.Result[A], default: => A): r.Result[A] =
         if (isTrue) resourceCall
         else default.point[r.Result]
@@ -663,7 +663,7 @@ trait WebmachineDecisions {
   /* Does Response Have Entity? (response body empty? */
   lazy val o20: Decision = new Decision {
     val name = "v3o20"
-    protected def decide(r: Resource): r.Result[Decision] =
+    def apply(r: Resource): r.Result[Decision] =
       (r.dataL >=> respBodyL).lift[IO].liftM[ResT] flatMap {
         body => 
           if (body.isEmpty) r.haltWithCode[Decision](204)
@@ -674,7 +674,7 @@ trait WebmachineDecisions {
   /* Is Conflict? (identical impl to o14) */
   lazy val p3: Decision = new Decision {
     val name = "v3p3"
-    protected def decide(r: Resource): r.Result[Decision] = for {
+    def apply(r: Resource): r.Result[Decision] = for {
         isConflict <- r.isConflict
          _ <- if (isConflict) r.haltWithCode[Boolean](409)
               else acceptContent(r)
@@ -684,7 +684,7 @@ trait WebmachineDecisions {
   /* New Resource? (basically, is location header set?) */
   lazy val p11: Decision = new Decision {
     val name = "v3p11"
-    protected def decide(r: Resource): r.Result[Decision] = 
+    def apply(r: Resource): r.Result[Decision] = 
       (r.dataL >=> responseHeadersL member Location).lift[IO].liftM[ResT] flatMap {
         mbLoc =>
           if (mbLoc.isDefined) r.haltWithCode[Decision](201)

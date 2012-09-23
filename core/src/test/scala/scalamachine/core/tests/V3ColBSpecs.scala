@@ -23,17 +23,17 @@ class V3ColBSpecs extends Specification with Mockito with SpecsHelper with Webma
   "B13 - Service Available?"                                                        ^
     "asks the resource if the service is available"                                 ^
       "if it is, decision B12 is returned"                                          ! testServiceAvailTrue ^
-      "if it is not, a response with code 503 is returned"                          ! testServiceAvailFalse ^
+      "if it is not, halts with code 503"                                           ! testServiceAvailFalse ^
                                                                                     p^p^
   "B12 - Known Method?"                                                             ^
     "asks the resource for the list of known methods"                               ^
       "if the request method is in the list, decision B11 is returned"              ! testKnownMethodTrue ^
-      "if it is not, a response with code 501 is returned"                          ! testKnownMethodFalse ^
+      "if it is not, halts with code 501"                                           ! testKnownMethodFalse ^
                                                                                     p^p^
   "B11 - URI too long?"                                                             ^
     "asks the resource if the request uri is too long"                              ^
       "if it is not, decision b10 is returned"                                      ! testURITooLongFalse ^
-      "if it is, a response with code 414 is returned"                              ! testURITooLongTrue ^
+      "if it is, halts with code 414"                                               ! testURITooLongTrue ^
                                                                                     p^p^
   "B10 - Allowed Method?"                                                           ^
     "asks resource for list of allowed methods"                                     ^
@@ -45,7 +45,7 @@ class V3ColBSpecs extends Specification with Mockito with SpecsHelper with Webma
   "B9 - Malformed Request?"                                                         ^
     "asks resource if request is malformed"                                         ^
       "if it is not, decision b8 is returned"                                       ! testMalformedFalse ^
-      "if it is, a response with code 400 is returned"                              ! testMalformedTrue ^
+      "if it is, halts with code 400"                                               ! testMalformedTrue ^
                                                                                     p^p^
   "B8 - Authorized"                                                                 ^
     "asks resource if request is authorized"                                        ^
@@ -59,22 +59,22 @@ class V3ColBSpecs extends Specification with Mockito with SpecsHelper with Webma
   "B7 - Forbidden?"                                                                 ^
     "asks resource if request is forbidden"                                         ^
       "if it is not, decision B6 is returned"                                       ! testForbiddenFalse ^
-      "if it is, a response with code 403 is returned"                              ! testForbiddenTrue ^
+      "if it is, halts with code 403"                                               ! testForbiddenTrue ^
                                                                                     p^p^
   "B6 - Valid Content-* Headers?"                                                   ^
     "asks resource if content headers are valid"                                    ^
       "if they are, decision B5 is returned"                                        ! testValidContentHeadersTrue ^
-      "if they are not, a response with code 501 is returned"                       ! testValidContentHeadersFalse ^
+      "if they are not, halts with code 501 is returned"                            ! testValidContentHeadersFalse ^
                                                                                     p^p^
   "B5 - Known Content Type?"                                                        ^
     "asks resource if the Content-Type is known"                                    ^
       "if it is, decision B4 is returned"                                           ! testKnownContentTypeTrue ^
-      "if it is not, a response with code 415 is returned"                          ! testKnownContentTypeFalse ^
+      "if it is not, halts with code 415"                                           ! testKnownContentTypeFalse ^
                                                                                     p^p^
   "B4 - Request Entity Too Large?"                                                  ^
     "asks resource if the request entity length is valid"                           ^
       "if it is, decision B3 is returned"                                           ! testIsValidEntityLengthTrue ^
-      "if it is not, a response with code 413 is returned"                          ! testIsValidEntityLengthFalse ^
+      "if it is not, halts with code 413"                                           ! testIsValidEntityLengthFalse ^
                                                                                     p^p^
   "B3 - OPTIONS?"                                                                   ^
     "if the request method is OPTIONS"                                              ^
@@ -88,9 +88,7 @@ class V3ColBSpecs extends Specification with Mockito with SpecsHelper with Webma
   }
 
   def testServiceAvailFalse = {
-    testDecisionReturnsData(b13, r => r.serviceAvailable returns false.point[r.Result]) {
-      _.statusCode must beEqualTo(503)
-    }
+    testDecisionHaltsWithCode(b13, 503, r => r.serviceAvailable returns false.point[r.Result])
   }
 
   def testKnownMethodTrue = {
@@ -98,9 +96,7 @@ class V3ColBSpecs extends Specification with Mockito with SpecsHelper with Webma
   }
 
   def testKnownMethodFalse = {
-    testDecisionReturnsData(b12, r => r.knownMethods returns List[HTTPMethod](GET).point[r.Result], data = createData(method = POST)) {
-      _.statusCode must beEqualTo(501)
-    }
+    testDecisionHaltsWithCode(b12, 501, r => r.knownMethods returns List[HTTPMethod](GET).point[r.Result], data = createData(method = POST))
   }
 
   def testURITooLongFalse = {
@@ -108,9 +104,7 @@ class V3ColBSpecs extends Specification with Mockito with SpecsHelper with Webma
   }
 
   def testURITooLongTrue = {
-    testDecisionReturnsData(b11, r => r.uriTooLong returns true.point[r.Result]) {
-      _.statusCode must beEqualTo(414)
-    }
+    testDecisionHaltsWithCode(b11, 414, r => r.uriTooLong returns true.point[r.Result])
   }
 
   def testAllowedMethodTrue = {
@@ -118,9 +112,7 @@ class V3ColBSpecs extends Specification with Mockito with SpecsHelper with Webma
   }
 
   def testAllowedMethodFalseRespCode = {
-    testDecisionReturnsData(b10, r => r.allowedMethods returns List[HTTPMethod](GET,DELETE).point[r.Result], data = createData(method = POST)) {
-      _.statusCode must beEqualTo(405)
-    }
+    testDecisionHaltsWithCode(b10, 405, r => r.allowedMethods returns List[HTTPMethod](GET,DELETE).point[r.Result], data = createData(method = POST))
   }
 
   def testAllowedMethodFalseAllowHeader = {
@@ -136,9 +128,7 @@ class V3ColBSpecs extends Specification with Mockito with SpecsHelper with Webma
   }
 
   def testMalformedTrue = {
-    testDecisionReturnsData(b9, r => r.isMalformed returns true.point[r.Result]) {
-      _.statusCode must beEqualTo(400)
-    }
+    testDecisionHaltsWithCode(b9, 400, r => r.isMalformed returns true.point[r.Result])
   }
 
   def testAuthTrue = {
@@ -146,9 +136,7 @@ class V3ColBSpecs extends Specification with Mockito with SpecsHelper with Webma
   }
 
   def testAuthFalseRespCode = {
-    testDecisionReturnsData(b8, r => r.isAuthorized returns (AuthFailure("something"): AuthResult).point[r.Result]) {
-      _.statusCode must beEqualTo(401)
-    }
+    testDecisionHaltsWithCode(b8, 401, r => r.isAuthorized returns (AuthFailure("something"): AuthResult).point[r.Result])
   }
 
   def testAuthFalseHaltResult = {
@@ -175,9 +163,7 @@ class V3ColBSpecs extends Specification with Mockito with SpecsHelper with Webma
   }
 
   def testForbiddenTrue = {
-    testDecisionReturnsData(b7, r => r.isForbidden returns true.point[r.Result]) {
-      _.statusCode must beEqualTo(403)
-    }
+    testDecisionHaltsWithCode(b7, 403, r => r.isForbidden returns true.point[r.Result])
   }
 
   def testValidContentHeadersTrue = {
@@ -185,9 +171,7 @@ class V3ColBSpecs extends Specification with Mockito with SpecsHelper with Webma
   }
 
   def testValidContentHeadersFalse = {
-    testDecisionReturnsData(b6, r => r.contentHeadersValid returns false.point[r.Result]) {
-      _.statusCode must beEqualTo(501)
-    }
+    testDecisionHaltsWithCode(b6, 501, r => r.contentHeadersValid returns false.point[r.Result])
   }
 
   def testKnownContentTypeTrue = {
@@ -195,9 +179,7 @@ class V3ColBSpecs extends Specification with Mockito with SpecsHelper with Webma
   }
 
   def testKnownContentTypeFalse = {
-    testDecisionReturnsData(b5, r => r.isKnownContentType returns false.point[r.Result]) {
-      _.statusCode must beEqualTo(415)
-    }
+    testDecisionHaltsWithCode(b5, 415, r => r.isKnownContentType returns false.point[r.Result])
   }
 
   def testIsValidEntityLengthTrue = {
@@ -205,9 +187,7 @@ class V3ColBSpecs extends Specification with Mockito with SpecsHelper with Webma
   }
 
   def testIsValidEntityLengthFalse = {
-    testDecisionReturnsData(b4, r => r.isValidEntityLength returns false.point[r.Result]) {
-      _.statusCode must beEqualTo(413)
-    }
+    testDecisionHaltsWithCode(b4, 413, r => r.isValidEntityLength returns false.point[r.Result])
   }
 
   def testRequestIsOptions = {

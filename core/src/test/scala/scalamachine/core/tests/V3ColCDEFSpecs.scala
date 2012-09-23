@@ -25,7 +25,7 @@ class V3ColCDEFSpecs extends Specification with Mockito with SpecsHelper with We
     "if the media type is provided by the resource"                                 ^
       "Decision D4 is returned & the mediatype is set as content type in metadata"  ! testMediaTypeProvided ^p^
     "if the media type is not provided by the resource"                             ^
-      "response with code 406 is returned"                                          ! testMediaTypeNotProvided ^
+      "halts with code 406"                                                         ! testMediaTypeNotProvided ^
                                                                                     p^p^
   "D4 - Accept-Language Exists?"                                                    ^
     "if Accept-Language header exists decision D5 is returned"                      ! testHasAcceptLanguage ^
@@ -34,7 +34,7 @@ class V3ColCDEFSpecs extends Specification with Mockito with SpecsHelper with We
   "D5 - Accept-Language Availble?"                                                  ^
     "asks resource if language is available"                                        ^
       "if it is, decision E5 is returned"                                           ! testIsLanguageAvailableTrue ^
-      "otherwise, a response with code 406 is returned"                             ! testIsLanguageAvailableFalse ^
+      "otherwise, halts with code 406"                                              ! testIsLanguageAvailableFalse ^
                                                                                     p^p^
   "E5 - Accept-Charset Exists?"                                                     ^
     "If the Accept-Charset header exists decision E6 is returned"                   ! testAcceptCharsetExists ^
@@ -43,12 +43,12 @@ class V3ColCDEFSpecs extends Specification with Mockito with SpecsHelper with We
         "decision F6 is returned"                                                   ! testAcceptMissingStarAcceptable ^
         "first charset provided by resource is set as chosen in metadata"           ! testAcceptMissingStarOkCharsetChosen ^p^
       "If resource specifies charset negotioation short circuting, F6 is returned"  ! testAcceptMissingCharsetNegShortCircuit ^
-      "otherwise, a response with code 406 is returned"                             ! testAcceptMissingStarNotAcceptable ^
+      "otherwise, halts with code 406"                                              ! testAcceptMissingStarNotAcceptable ^
                                                                                     p^p^
   "E6 - Accept-Charset Available?"                                                  ^
     "If resource specifies charset negotiation short circuting, F6 is returned"     ! testAcceptExistsCharsetNegShortCircuit ^
     "If the charset is provided by the resource, F6 returned, chosen set in meta"   ! testAcceptExistsAcceptableSetInMeta ^
-    "If charset is not provided by the resource, response w/ code 406 returned"     ! testAcceptExistsNotAcceptable ^
+    "If charset is not provided by the resource, halts with code 406 returned"      ! testAcceptExistsNotAcceptable ^
                                                                                     p^
   "F6 - Accept-Encoding Exists?"                                                    ^
     "sets the chosen content type/charset in response content type header"          ^
@@ -60,12 +60,12 @@ class V3ColCDEFSpecs extends Specification with Mockito with SpecsHelper with We
     "if the accept-encoding header is missing"                                      ^
       """if "identity;q=1.0,*;q=0.5" is acceptable"""                               ^
         "chosen is set as the value of Content-Encoding header,in meta, G7 returned"! testAcceptEncodingMissingDefaultAcceptable ^p^
-      "otherwise, a response with code 406 is returned"                             ! testAcceptEncodingMissingDefaultNotAcceptable ^
+      "otherwise, halts with code 406"                                              ! testAcceptEncodingMissingDefaultNotAcceptable ^
                                                                                     p^p^
   "F7 - Accept Encoding Available?"                                                 ^
     "If resource specifies encoding neg. short circuiting, G7 returned"             ! testAcceptEncodingExistsShortCircuit ^
     "If charset is provided by the resource, G7 returned, chosen set in resp./meta" ! testAcceptEncodingExistsAcceptable ^
-    "If charset is not provided, response w/ code 406 returned"                     ! testAcceptEncodingExistsNotAcceptable ^
+    "If charset is not provided, halts wit code 406"                                ! testAcceptEncodingExistsNotAcceptable ^
                                                                                     end
 
   // TODO: change D5 to do real language negotiation like ruby webmachine implementation
@@ -116,9 +116,7 @@ class V3ColCDEFSpecs extends Specification with Mockito with SpecsHelper with We
       r.contentTypesProvided returns ctypes.point[r.Result]
     }
 
-    testDecisionReturnsData(c4,stub(_), data = createData(headers = Map(Accept -> "text/plain"))) {
-      _.statusCode must beEqualTo(406)
-    }
+    testDecisionHaltsWithCode(c4, 406, stub(_), data = createData(headers = Map(Accept -> "text/plain")))
   }
 
   def testMediaTypeProvided = {
@@ -145,9 +143,7 @@ class V3ColCDEFSpecs extends Specification with Mockito with SpecsHelper with We
   }
 
   def testIsLanguageAvailableFalse = {
-    testDecisionReturnsData(d5, r => r.isLanguageAvailable returns false.point[r.Result], data = createData(headers = Map(AcceptLanguage -> "en/us"))) {
-      _.statusCode must beEqualTo(406)
-    }
+    testDecisionHaltsWithCode(d5, 406, r => r.isLanguageAvailable returns false.point[r.Result], data = createData(headers = Map(AcceptLanguage -> "en/us")))
   }
 
   def testIsLanguageAvailableTrue = {
@@ -177,9 +173,7 @@ class V3ColCDEFSpecs extends Specification with Mockito with SpecsHelper with We
 
   def testAcceptMissingStarNotAcceptable = {
     val provided: CharsetsProvided = Some(Nil)
-    testDecisionReturnsData(e5, r => r.charsetsProvided returns provided.point[r.Result]) {
-      _.statusCode must beEqualTo(406)
-    }
+    testDecisionHaltsWithCode(e5, 406, r => r.charsetsProvided returns provided.point[r.Result])
   }
 
   def testAcceptExistsCharsetNegShortCircuit = {
@@ -197,9 +191,7 @@ class V3ColCDEFSpecs extends Specification with Mockito with SpecsHelper with We
 
   def testAcceptExistsNotAcceptable = {
     val provided: CharsetsProvided = Some(Nil)
-    testDecisionReturnsData(e6, r => r.charsetsProvided returns provided.point[r.Result], data = createData(headers = Map(AcceptCharset -> "ISO-8859-1"))) {
-      _.statusCode must beEqualTo(406)
-    }
+    testDecisionHaltsWithCode(e6, 406, r => r.charsetsProvided returns provided.point[r.Result], data = createData(headers = Map(AcceptCharset -> "ISO-8859-1")))
   }
 
   def testF6MediaAndCharsetNotChosen = {
@@ -260,9 +252,7 @@ class V3ColCDEFSpecs extends Specification with Mockito with SpecsHelper with We
 
   def testAcceptEncodingMissingDefaultNotAcceptable = {
     val provided: EncodingsProvided = Some(Nil)
-    testDecisionReturnsData(f6, r => r.encodingsProvided returns provided.point[r.Result]) {
-      _.statusCode must beEqualTo(406)
-    }
+    testDecisionHaltsWithCode(f6, 406, r => r.encodingsProvided returns provided.point[r.Result])
   }
 
   def testAcceptEncodingExistsShortCircuit = {
@@ -284,8 +274,10 @@ class V3ColCDEFSpecs extends Specification with Mockito with SpecsHelper with We
 
   def testAcceptEncodingExistsNotAcceptable = {
     val provided: EncodingsProvided = Some(Nil)
-    testDecisionReturnsData(f7, r => r.encodingsProvided returns provided.point[r.Result], data = createData(headers = Map(AcceptEncoding -> "ISO-8859-1"))) {
-      d => (d.responseHeader(ContentEncoding) must beNone) and (d.statusCode must beEqualTo(406))
+    def stub(r: Resource) { r.encodingsProvided returns provided.point[r.Result] }
+    val data = createData(headers = Map(AcceptEncoding -> "ISO-8859-1"))
+    testDecisionHaltsWithCode(f7, 406, stub(_), data = data) and testDecisionReturnsData(f7, r => r.encodingsProvided returns provided.point[r.Result], data = data) {
+      d => (d.responseHeader(ContentEncoding) must beNone)
     }
   }
 

@@ -107,7 +107,7 @@ class WebmachineV3Specs extends Specification with Mockito with SpecsHelper with
                                                                                     p^
   "M7 - Can POST to missing resource?"                                              ^
     "if resource returns true, N11 is returned"                                     ! testDecisionReturnsDecision(m7,n11, r => r.allowMissingPost returns true.point[r.Result]) ^
-    "otherwise, response with code 404 is returned"                                 ! testDecisionReturnsData(m7, r => r.allowMissingPost returns false.point[r.Result]) { _.statusCode must_== 404 } ^
+    "otherwise, response with code 404 is returned"                                 ! testDecisionHaltsWithCode(m7, 404, r => r.allowMissingPost returns false.point[r.Result]) ^
                                                                                     p^
   "M16 - DELETE?"                                                                   ^
     "if request method is DELETE, M20 returned"                                     ! testDecisionReturnsDecision(m16,m20,r => {}, data = createData(method = DELETE)) ^
@@ -115,15 +115,15 @@ class WebmachineV3Specs extends Specification with Mockito with SpecsHelper with
                                                                                     p^
   "M20 - Call Resource.deleteResource"                                              ^
     "if true is returned, M20b is returned"                                         ! testDecisionReturnsDecision(m20,m20b,r => r.deleteResource returns true.point[r.Result]) ^
-    "if false is returned, response with code 500 is returned"                      ! testDecisionReturnsData(m20,r => r.deleteResource returns false.point[r.Result]) { _.statusCode must_== 500 } ^
+    "if false is returned, response with code 500 is returned"                      ! testDecisionHaltsWithCode(m20, 500, r => r.deleteResource returns false.point[r.Result]) ^
                                                                                     p^
   "M20b - Delete Enacted? (Resource.deleteCompleted)"                               ^
     "if true, O20 is returned"                                                      ! testDecisionReturnsDecision(m20b,o20, r => r.deleteCompleted returns true.point[r.Result]) ^
-    "if false, response with code 202 is returned"                                  ! testDecisionReturnsData(m20b, r => r.deleteCompleted returns false.point[r.Result]) { _.statusCode must_== 202 } ^
+    "if false, response with code 202 is returned"                                  ! testDecisionHaltsWithCode(m20b, 202, r => r.deleteCompleted returns false.point[r.Result]) ^
                                                                                     p^
   "N5 - Can POST to missing resource?"                                              ^
     "if true, N11 returned"                                                         ! testDecisionReturnsDecision(n5,n11, r => r.allowMissingPost returns true.point[r.Result]) ^
-    "otherwise, response with code 410 returned"                                    ! testDecisionReturnsData(n5,r => r.allowMissingPost returns false.point[r.Result]) { _.statusCode must_== 410 } ^
+    "otherwise, response with code 410 returned"                                    ! testDecisionHaltsWithCode(n5,410,r => r.allowMissingPost returns false.point[r.Result])  ^
                                                                                     p^
   "N11 - Process Post, Determine Redirect"                                          ^
     "Process Post"                                                                  ^
@@ -153,7 +153,7 @@ class WebmachineV3Specs extends Specification with Mockito with SpecsHelper with
     "otherwise, O16 returned"                                                       ! testDecisionReturnsDecision(n16,o16,r => {}, data = createData(method = GET)) ^
                                                                                     p^
   "O14 - Conflict?"                                                                 ^
-    "if Resource.isConflict returns true, response w/ code 409 returned"            ! testDecisionReturnsData(o14, r => r.isConflict returns true.point[r.Result]) { _.statusCode must beEqualTo(409) } ^
+    "if Resource.isConflict returns true, response w/ code 409 returned"            ! testDecisionHaltsWithCode(o14, 409, r => r.isConflict returns true.point[r.Result]) ^
     "otherwise"                                                                     ^
       "if request's ctype is accepted and corresponding func. returns true"         ^
         "if body is set it is charsetted and encoded, P11 returned"                 ! testO14ContentTypeAcceptedReturnsTrue ^p^
@@ -177,11 +177,11 @@ class WebmachineV3Specs extends Specification with Mockito with SpecsHelper with
     "otherwise response with code 200 returned"                                     ! testMultipleChoicesFalse ^
                                                                                     p^
   "O20 - Response includes an entity?"                                              ^
-    "if EmptyBody, response with code 204 returned"                                 ! testDecisionReturnsData(o20,r => {}) { _.statusCode must beEqualTo(204) } ^
+    "if EmptyBody, response with code 204 returned"                                 ! testDecisionHaltsWithCode(o20,204,r => {}) ^
     "otherwise, O18 returned"                                                       ! testDecisionReturnsDecision(o20,o18,r =>{},data=createData(respBody="1".getBytes)) ^
                                                                                     p^
   "P11 - New Resource?"                                                             ^
-    "if location header is set, response with code 201 returned"                    ! testDecisionReturnsData(p11,r=>{},data=createData(respHdrs=Map(Location-> "a"))) { _.statusCode must_== 201 } ^
+    "if location header is set, response with code 201 returned"                    ! testDecisionHaltsWithCode(p11,201,r=>{},data=createData(respHdrs=Map(Location-> "a"))) ^
     "otherwise, O20 returned"                                                       ! testDecisionReturnsDecision(p11,o20,r => {})
                                                                                     end
 
@@ -225,8 +225,9 @@ class WebmachineV3Specs extends Specification with Mockito with SpecsHelper with
       r.encodingsProvided returns (None: EncodingsProvided).point[r.Result]
       r.multipleChoices returns true.point[r.Result]
     }
-    testDecisionReturnsData(
+    testDecisionHaltsWithCode(
       o18,
+      300,
       stub(_),
       data = createData(
         method = GET,
@@ -236,7 +237,7 @@ class WebmachineV3Specs extends Specification with Mockito with SpecsHelper with
           chosenCharset = Some("ch1")
         )
       )
-    ) { _.statusCode must beEqualTo(300) }
+    )
   }
 
   def testO18BodyProductionTest = {
@@ -434,9 +435,7 @@ class WebmachineV3Specs extends Specification with Mockito with SpecsHelper with
   }
 
   def testH7IfMatchExists = {
-    testDecisionReturnsData(h7,r => {}, data = createData(headers = Map(IfMatch -> "*"))) {
-      _.statusCode must beEqualTo(412)
-    }
+    testDecisionHaltsWithCode(h7, 412, r => {}, data = createData(headers = Map(IfMatch -> "*")))
   }
 
   def testIfUnmodifiedSinceExists = {
@@ -465,9 +464,7 @@ class WebmachineV3Specs extends Specification with Mockito with SpecsHelper with
 
   def testIUMSLessThanLastMod = {
     val date = DateUtil.parseDate("Sat, 29 Oct 1995 19:43:31 GMT")
-    testDecisionReturnsData(h12, r => r.lastModified returns Option(date).point[r.Result], data = createData(headers = Map(IfUnmodifiedSince -> "Sat, 29 Oct 1994 19:43:31 GMT"))) {
-      _.statusCode must beEqualTo(412)
-    }
+    testDecisionHaltsWithCode(h12, 412, r => r.lastModified returns Option(date).point[r.Result], data = createData(headers = Map(IfUnmodifiedSince -> "Sat, 29 Oct 1994 19:43:31 GMT")))
   }
 
   def testIUMSGreaterThanLastMod = {
@@ -499,10 +496,11 @@ class WebmachineV3Specs extends Specification with Mockito with SpecsHelper with
 
   def testResourceMovedPermanently(toTest: Decision) = {
     val location = "http://somewhere.com"
-    testDecisionReturnsData(toTest,r => r.movedPermanently returns Option(location).point[r.Result]) {
-      d => (d.statusCode must beEqualTo(301)) and (d.responseHeader(Location) must beSome.like {
+    def stub(r: Resource) { r.movedPermanently returns Option(location).point[r.Result] }
+    testDecisionHaltsWithCode(toTest, 301, stub(_)) and testDecisionReturnsData(toTest,stub(_)) {
+      d => d.responseHeader(Location) must beSome.like {
         case loc => loc must beEqualTo(location)
-      })
+      }
     }
   }
 
@@ -519,21 +517,15 @@ class WebmachineV3Specs extends Specification with Mockito with SpecsHelper with
   }
 
   def testJ18IsGet = {
-    testDecisionReturnsData(j18,r => {}, data = createData(method = GET)) {
-      _.statusCode must beEqualTo(304)
-    }
+    testDecisionHaltsWithCode(j18,304,r => {}, data = createData(method = GET))
   }
 
   def testJ18IsHead = {
-    testDecisionReturnsData(j18,r => {}, data = createData(method = HEAD)) {
-      _.statusCode must beEqualTo(304)
-    }
+    testDecisionHaltsWithCode(j18,304,r => {}, data = createData(method = HEAD))
   }
 
   def testJ18Neither = {
-    testDecisionReturnsData(j18, r => {}, data = createData(method = POST)) {
-      _.statusCode must beEqualTo(412)
-    }
+    testDecisionHaltsWithCode(j18, 412, r => {}, data = createData(method = POST))
   }
 
   def testResourceExistedPrevTrue = {
@@ -554,10 +546,11 @@ class WebmachineV3Specs extends Specification with Mockito with SpecsHelper with
 
   def testResourceMovedTemporarily = {
     val location = "http://abc.com"
-    testDecisionReturnsData(l5,r => r.movedTemporarily returns Option(location).point[r.Result]) {
-      d => (d.statusCode must beEqualTo(307)) and (d.responseHeader(Location) must beSome.like {
+    def stub(r: Resource) { r.movedTemporarily returns Option(location).point[r.Result] }
+    testDecisionHaltsWithCode(l5, 307, stub(_)) and testDecisionReturnsData(l5,stub(_)) {
+      d => d.responseHeader(Location) must beSome.like {
         case loc => loc must beEqualTo(location)
-      })
+      }
     }
   }
 
@@ -567,7 +560,7 @@ class WebmachineV3Specs extends Specification with Mockito with SpecsHelper with
 
   def testIsPost(toTest: Decision,whenPost:Decision,whenNot:Int) =
     "if request method is POST, " + whenPost.name + "  is returned"                   ! testRequestIsPost(toTest,whenPost) ^
-    "if request method is not POST, response w/ code " + whenNot + " returned"      ! testRequestNotPost(toTest,whenNot)
+    "if request method is not POST, halts w/ code " + whenNot                         ! testRequestNotPost(toTest,whenNot)
 
 
   def testRequestIsPost(toTest: Decision, expected: Decision) = {
@@ -575,9 +568,7 @@ class WebmachineV3Specs extends Specification with Mockito with SpecsHelper with
   }
 
   def testRequestNotPost(toTest: Decision, responseCode: Int) = {
-    testDecisionReturnsData(toTest,r => {},data = createData(method = GET)) {
-      _.statusCode must beEqualTo(responseCode)
-    }
+    testDecisionHaltsWithCode(toTest,responseCode,r => {},data = createData(method = GET))
   }
 
   def testIMSMissing = {
@@ -616,13 +607,12 @@ class WebmachineV3Specs extends Specification with Mockito with SpecsHelper with
   }
 
   def testLastModLessThanIMS = {
-    testDecisionReturnsData(
-     l17,
+    testDecisionHaltsWithCode(
+      l17,
+      304,
       r => r.lastModified returns Util.parseDate("Sun, 06 Nov 1993 08:49:37 GMT").point[r.Result],
       data = createData(headers = Map(IfModifiedSince -> "Sun, 06 Nov 1994 08:49:37 GMT"))
-    ) {
-      _.statusCode must beEqualTo(304)
-    }
+    )
   }
 
   def testDoRedirect = {
@@ -643,8 +633,9 @@ class WebmachineV3Specs extends Specification with Mockito with SpecsHelper with
       r.charsetsProvided returns charsets.point[r.Result]
     }
 
-    testDecisionReturnsData(
+    testDecisionHaltsWithCode(
       n11,
+      303,
       stub(_),
       data = createData(
         metadata = Metadata(chosenCharset = Some("ch1"), chosenEncoding = Some("enc1")),
@@ -652,7 +643,7 @@ class WebmachineV3Specs extends Specification with Mockito with SpecsHelper with
         respHdrs = Map(Location -> "someloc"),
         doRedirect = true
       )
-    ) { _.statusCode must beEqualTo(303) }
+    )
   }
 
   def testNoRedirect = {
@@ -690,11 +681,12 @@ class WebmachineV3Specs extends Specification with Mockito with SpecsHelper with
       r.contentTypesAccepted returns contentTypesAccepted.point[r.Result]
 
     }
-    testDecisionResultHasData(
+    testDecisionHaltsWithCode(
       n11,
+      415,
       stub(_),
       data = createData(headers = Map(ContentTypeHeader -> "text/html2"))
-    ) { _.statusCode must beEqualTo(415) }
+    )
 
   }
 
@@ -707,11 +699,12 @@ class WebmachineV3Specs extends Specification with Mockito with SpecsHelper with
       r.createPath returns Option("a/b").point[r.Result]
       r.contentTypesAccepted returns contentTypesAccepted.point[r.Result]
     }
-    testDecisionResultHasData(
+    testDecisionHaltsWithCode(
       n11,
+      500,
       stub(_),
       data = createData(headers = Map(ContentTypeHeader -> "text/html"))
-    ) { _.statusCode must beEqualTo(500) }
+    )
 
   }
 
@@ -778,13 +771,14 @@ class WebmachineV3Specs extends Specification with Mockito with SpecsHelper with
   }
 
   def testCreatePathNone = {
-    testDecisionReturnsData(
+    testDecisionHaltsWithCode(
       n11,
+      500,
       r => {
         r.postIsCreate returns true.point[r.Result]
         r.createPath returns (None: Option[String]).point[r.Result]
       }
-    ) { _.statusCode must beEqualTo(500) }
+    )
   }
 
   def testCreatePathSomeSetsDispPath = {
@@ -841,13 +835,14 @@ class WebmachineV3Specs extends Specification with Mockito with SpecsHelper with
     val charsetBody = "body3"
     val encodings: EncodingsProvided = Some(("enc1", (s: Array[Byte]) => s ++ encodingBody.getBytes) :: ("enc2", identity[Array[Byte]](_)) :: Nil)
     val charsets: EncodingsProvided = Some(("ch1", (s: Array[Byte]) => s ++ charsetBody.getBytes) :: ("ch2", identity[Array[Byte]](_)) :: Nil)
-    testDecisionResultHasData(
+    testDecisionHaltsWithCode(
       n11,
+      500,
       r => {
         r.postIsCreate returns false.point[r.Result]
         r.processPost returns false.point[r.Result]
       }
-    ) { _.statusCode must beEqualTo(500) }
+    )
   }
 
   def testO14ContentTypeAcceptedReturnsTrue = {
@@ -886,23 +881,25 @@ class WebmachineV3Specs extends Specification with Mockito with SpecsHelper with
       r.isConflict returns false.point[r.Result]
       r.contentTypesAccepted returns contentTypesAccepted.point[r.Result]
     }
-    testDecisionReturnsData(
+    testDecisionHaltsWithCode(
       o14,
+      500,
       stub(_),
       data = createData(headers = Map(ContentTypeHeader -> "text/html"))
-    ) { _.statusCode must beEqualTo(500) }
+    )
 
   }
 
   def testO14ContentTypeNotAccepted = {
-    testDecisionReturnsData(
+    testDecisionHaltsWithCode(
       o14,
+      415,
       r => {
         r.isConflict returns false.point[r.Result]
         r.contentTypesAccepted returns (Nil: r.ContentTypesAccepted).point[r.Result]
       },
       data = createData(headers = Map(ContentTypeHeader -> "text/html"))
-    ) { _.statusCode must beEqualTo(415) }
+    ) 
 
   }
 

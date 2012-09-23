@@ -41,9 +41,24 @@ trait SpecsHelper {
                    r: MockableResource = createResource,
                    data: ReqRespData = createData())(f: (ReqRespData, Option[Decision]) => MatchResult[Any]): MatchResult[Any] = {
     stubF(r) // make call to stub/mock
-    val res: r.ReqRespState[Option[Decision]] = decision(r)
+    val res: r.ReqRespState[Option[Decision]] = decision(r).run.map(_.toOption)
     val ((newData,_),mbNext) = res.apply((data, r.init)).unsafePerformIO 
     f(newData, mbNext)
+  }
+
+  def testDecisionHaltsWithCode(decision: Decision,
+                                code: Int,
+                                stubF: MockableResource => Unit,
+                                r: MockableResource = createResource,
+                                data: ReqRespData = createData()) = {
+    stubF(r)
+    val haltCode = decision(r).run.eval((data, r.init)).unsafePerformIO match {      
+      case HaltRes(code, _) => code
+      case ErrorRes(_) => 500
+      case _ => -1
+    }
+ 
+    haltCode must beEqualTo(code)                                  
   }
 
   def testDecisionReturnsDecision(toTest: Decision,

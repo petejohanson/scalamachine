@@ -346,9 +346,7 @@ class V3ColGSpecs extends Specification with Mockito with SpecsHelper with Webma
   }
 
   def testIfMatchMissingEtag = {
-    testDecisionReturnsData(g11, r => r.generateEtag returns (None: Option[String]).point[r.Result], data = createData(headers = Map(IfMatch -> "1"))) {
-      _.statusCode must beEqualTo(412)
-    }
+    testDecisionHaltsWithCode(g11, 412, r => r.generateEtag returns (None: Option[String]).point[r.Result], data = createData(headers = Map(IfMatch -> "1")))
   }
 
 }
