@@ -74,6 +74,10 @@ object Dependencies {
 
   /* Host Framework Dependencies */
   lazy val netty          = "io.netty"                % "netty"                         % "3.5.7.Final"     % "compile" withSources()
+  lazy val servletApi     = "javax.servlet"           % "servlet-api"                   % "2.5"             % "compile" withSources()
+
+  /* Example Porject Dependencies */
+  lazy val jetty          = "org.eclipse.jetty"       % "jetty-webapp"                  % "7.3.0.v20110203" % "container"
 
   /* Logging */
   lazy val logback        = "ch.qos.logback"          % "logback-classic"               % "1.0.0"           % "compile" withSources()
@@ -101,7 +105,7 @@ object ScalamachineBuild extends Build {
 
   lazy val scalamachine = Project("scalamachine", file("."),
     settings = standardSettings ++ publishSettings ++ Seq(publishArtifact in Compile := false),
-    aggregate = Seq(core,nettySupport, nettyExample)
+    aggregate = Seq(core,nettySupport,servletSupport,nettyExample,servletExample)
   )
 
   lazy val core = Project("scalamachine-core", file("core"),
@@ -124,6 +128,16 @@ object ScalamachineBuild extends Build {
         libraryDependencies ++= Seq(netty, slf4j)
       )
   )
+
+
+  lazy val servletSupport = Project("scalamachine-servlet", file("servlet"),
+    dependencies = Seq(core), 
+    settings = standardSettings ++ publishSettings ++
+      Seq(
+        name := "scalamachine-servlet",
+        libraryDependencies ++= Seq(servletApi)
+      )
+  )
   
   lazy val nettyExample = Project("netty-example", file("examples/netty"), 
     dependencies = Seq(nettySupport),
@@ -133,6 +147,15 @@ object ScalamachineBuild extends Build {
         libraryDependencies ++= Seq(logback)
     )
   )              
+
+  lazy val servletExample = Project("servlet-example", file("examples/servlet"),
+    dependencies = Seq(servletSupport),
+    settings = standardSettings ++ webSettings ++
+      Seq(
+        name := "scalamachine-servlet-example",
+        libraryDependencies ++= Seq(jetty,logback)
+      )
+  )
 
 }
 
