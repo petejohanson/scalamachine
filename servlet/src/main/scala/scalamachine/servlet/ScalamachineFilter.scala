@@ -8,13 +8,17 @@ import scalamachine.core.dispatch.RoutingTable
 
 class ScalamachineFilter extends Filter with ReqRespDataConverters {
 
+  import ScalamachineFilter._
+
   private var routes: RoutingTable = _
   private var runner: WebmachineRunner = _
 
   @throws(classOf[ServletException])
   override def init(config: FilterConfig) {
-    val runnerClazzName = config.getInitParameter("runner")
-    val routesClazzName = config.getInitParameter("routes")
+    val runnerClazzName = Option(config.getInitParameter("runner")) getOrElse defaultRunnerClazz
+    val routesClazzName = Option(config.getInitParameter("routes")) getOrElse {
+      throw new RuntimeException("routes init-param required")
+    }
     if (runnerClazzName.endsWith("$")) { // hackity hack for singleton object like WebmachineV3Runner
       val ctor = Class.forName(runnerClazzName).getDeclaredConstructors()(0)
       ctor.setAccessible(true)
@@ -46,3 +50,6 @@ class ScalamachineFilter extends Filter with ReqRespDataConverters {
 
 }
 
+object ScalamachineFilter {
+  private val defaultRunnerClazz = "scalamachine.core.v3.WebmachineV3Runner$"
+}

@@ -12,10 +12,6 @@
       <param-name>routes</param-name>
       <param-value>code.ExampleRoutes</param-value>
     </init-param>
-    <init-param>
-      <param-name>runner</param-name>
-      <param-value>scalamachine.core.v3.WebmachineV3Runner$</param-value>
-    </init-param>
   </filter>
 
   <filter-mapping>
