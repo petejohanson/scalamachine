@@ -67,15 +67,19 @@ object BuildSettings {
 }
 
 object Dependencies {
+  /* Core Dependencies */
   lazy val scalaz7        = "org.scalaz"              %% "scalaz-iteratee"              % "7.0.0-M3"        % "compile" withSources()
-  lazy val slf4j          = "org.slf4j"               % "slf4j-api"                     % "1.6.4"           % "compile"
   // Don't want to keep this dependency long term but for now its fastest way to get date parsing for http
   lazy val commonsHttp    = "commons-httpclient"      % "commons-httpclient"            % "3.1"             % "compile" withSources()
-  lazy val liftweb        = "net.liftweb"             %% "lift-webkit"                  % "2.4"             % "compile" withSources()  
-  lazy val jetty          = "org.eclipse.jetty"       % "jetty-webapp"                  % "7.3.0.v20110203" % "container"
+
+  /* Host Framework Dependencies */
   lazy val netty          = "io.netty"                % "netty"                         % "3.5.7.Final"     % "compile" withSources()
-//  lazy val finagle        = "com.twitter"             %% "finagle-http"                 % "1.9.12"          % "compile" withSources()
+
+  /* Logging */
   lazy val logback        = "ch.qos.logback"          % "logback-classic"               % "1.0.0"           % "compile" withSources()
+  lazy val slf4j          = "org.slf4j"               % "slf4j-api"                     % "1.6.4"           % "compile"
+
+  /* Test */
   lazy val specs2         = "org.specs2"              %% "specs2"                       % "1.12.1.1"        % "test" withSources()
   lazy val scalacheck     = "org.scalacheck"          %% "scalacheck"                   % "1.10.0"          % "test" withSources()
   lazy val mockito        = "org.mockito"             % "mockito-all"                   % "1.9.0"           % "test" withSources()
@@ -97,14 +101,14 @@ object ScalamachineBuild extends Build {
 
   lazy val scalamachine = Project("scalamachine", file("."),
     settings = standardSettings ++ publishSettings ++ Seq(publishArtifact in Compile := false),
-    aggregate = Seq(core,nettySupport, nettyExample) // ,lift)
+    aggregate = Seq(core,nettySupport, nettyExample)
   )
 
   lazy val core = Project("scalamachine-core", file("core"),
     settings = standardSettings ++ publishSettings ++ site.settings ++ site.jekyllSupport("jekyll") ++ site.includeScaladoc() ++ ghpages.settings ++
       Seq(
         name := "scalamachine-core",
-        libraryDependencies ++= Seq(scalaz7,slf4j,commonsHttp,specs2,scalacheck,mockito,hamcrest,pegdown),
+        libraryDependencies ++= Seq(scalaz7,commonsHttp,specs2,scalacheck,mockito,hamcrest,pegdown),
 	git.remoteRepo := "git@github.com:stackmob/scalamachine",
         docsRepo := "git@github.com:stackmob/scalamachine.site",
         git.branch in ghpages.updatedRepository := Some("master"),
@@ -112,44 +116,15 @@ object ScalamachineBuild extends Build {
       )
   )
 
-  /*
-  lazy val lift = Project("scalamachine-lift", file("lift"),
-    dependencies = Seq(core), 
-    settings = standardSettings ++ publishSettings ++
-      Seq(
-        name := "scalamachine-lift",
-        libraryDependencies ++= Seq(liftweb)
-      )
-  )*/
-
   lazy val nettySupport = Project("scalamachine-netty", file("netty"),
     dependencies = Seq(core),
     settings = standardSettings ++ publishSettings ++
       Seq(
         name := "scalamachine-netty",
-        libraryDependencies ++= Seq(netty)
+        libraryDependencies ++= Seq(netty, slf4j)
       )
   )
   
-  /*
-  lazy val liftExample = Project("scalamachine-lift-example", file("examples/lift"),
-    dependencies = Seq(lift),
-    settings = standardSettings ++ webSettings ++
-      Seq(
-        name := "scalamachine-lift-example",
-        libraryDependencies ++= Seq(jetty,logback)
-      )
-  )
-
-  lazy val finagleExample = Project("scalamachine-finagle-example", file("examples/finagle"),
-    dependencies = Seq(netty),
-    settings = standardSettings ++
-      Seq(
-        name := "scalamachine-finagle-example",
-        libraryDependencies ++= Seq(logback)
-      )
-  )*/
-
   lazy val nettyExample = Project("netty-example", file("examples/netty"), 
     dependencies = Seq(nettySupport),
     settings = standardSettings ++
