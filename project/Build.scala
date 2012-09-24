@@ -76,7 +76,7 @@ object Dependencies {
   lazy val netty          = "io.netty"                % "netty"                         % "3.5.7.Final"     % "compile" withSources()
   lazy val servletApi     = "javax.servlet"           % "servlet-api"                   % "2.5"             % "compile" withSources()
 
-  /* Example Porject Dependencies */
+  /* Example Project Dependencies */
   lazy val jetty          = "org.eclipse.jetty"       % "jetty-webapp"                  % "7.3.0.v20110203" % "container"
 
   /* Logging */
