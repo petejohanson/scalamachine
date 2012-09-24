@@ -2,7 +2,7 @@ package scalamachine.core.tests
 
 import org.specs2._
 import mock._
-import scalaz.{StateT, State}
+import scalaz.{StateT, State, OptionT}
 import scalaz.effect.IO
 import State._
 import scalamachine.core._
@@ -30,9 +30,21 @@ class WebmachineRunnerSpecs
       "the response code of the returned data is equal to 500"                 ! testErrorRes500 ^     
       "if the response already contained a body the error body is not set"     ! testErrorResBodyNotSet ^     
       "if the response does not already contain a body the error body is set"  ! testErrorResBodySet ^
+  "Given a decision that throws an exception when apply is called"             ^
+    "response with code 500 returned, error message set as response body"      ! testDecisionApplyThrows ^p^
+  "Given a decision whose returned state action throws an exception when run"  ^
+    "response with code 500 returned, error message set as response body"      ! testStateThrows ^p^
+  "Given a decision whose state action throws inside IO"                       ^
+    "response with code 500 returned, error message set as response body"      ! testStateIOThrows ^
                                                                                end
 
-  object TestMachine extends WebmachineRunner                
+  object TestMachine extends WebmachineRunner {
+    def apply(r: Resource, first: Decision, init: ReqRespData): ReqRespData = 
+      runMachineIO(r, first, init).unsafePerformIO
+
+    protected def runFlowIO(init: ReqRespData, routes: RoutingTable): OptionT[IO,ReqRespData] = 
+      sys.error("should not be called under this specs suite")
+  }
                 
   def testEmptyRes = {
     val r: Resource = createResource
@@ -43,7 +55,7 @@ class WebmachineRunnerSpecs
       ((endData, s._2), Res.empty[Decision])
     }).lift[IO])
      
-    TestMachine(r, decision, startData).unsafePerformIO must beEqualTo(endData)
+    TestMachine(r, decision, startData) must beEqualTo(endData)
   }                
 
   def testHaltResSetsCode = {
@@ -51,7 +63,7 @@ class WebmachineRunnerSpecs
     val decision = mock[Decision]
     val code = 540
     decision.apply(r) returns ResT.haltT[r.ReqRespState, Decision](code)
-    TestMachine(r, decision, ReqRespData(statusCode = 200)).map(_.statusCode).unsafePerformIO must beEqualTo(code)
+    TestMachine(r, decision, ReqRespData(statusCode = 200)).statusCode must beEqualTo(code)
   }
 
   def testHaltResHasBodyNoBodySet = {
@@ -59,7 +71,7 @@ class WebmachineRunnerSpecs
     val decision = mock[Decision]
     val expectedBody: HTTPBody = "body"
     decision.apply(r) returns ResT.haltT[r.ReqRespState, Decision](500, expectedBody)
-    TestMachine(r, decision, ReqRespData()).map(_.responseBody.stringValue).unsafePerformIO must beEqualTo(expectedBody.stringValue)
+    TestMachine(r, decision, ReqRespData()).responseBody.stringValue must beEqualTo(expectedBody.stringValue)
   }    
 
   def testHaltResHasBodyAndBodySet = {
@@ -67,14 +79,14 @@ class WebmachineRunnerSpecs
     val decision = mock[Decision]
     val expectedBody: HTTPBody = "body"
     decision.apply(r) returns ResT.haltT[r.ReqRespState, Decision](500, "other")
-    TestMachine(r, decision, ReqRespData(responseBody = expectedBody)).map(_.responseBody.stringValue).unsafePerformIO must beEqualTo(expectedBody.stringValue)    
+    TestMachine(r, decision, ReqRespData(responseBody = expectedBody)).responseBody.stringValue must beEqualTo(expectedBody.stringValue)    
   }   
 
   def testErrorRes500 = {
     val r: Resource = createResource
     val decision = mock[Decision]
     decision.apply(r) returns ResT.errorT[r.ReqRespState, Decision]("")
-    TestMachine(r, decision, ReqRespData()).map(_.statusCode).unsafePerformIO must beEqualTo(500)
+    TestMachine(r, decision, ReqRespData()).statusCode must beEqualTo(500)
   }                    
 
   def testErrorResBodyNotSet = {
@@ -82,7 +94,7 @@ class WebmachineRunnerSpecs
     val decision = mock[Decision]
     val expectedBody: HTTPBody = "body"
     decision.apply(r) returns ResT.errorT[r.ReqRespState, Decision](expectedBody)
-    TestMachine(r, decision, ReqRespData()).map(_.responseBody.stringValue).unsafePerformIO must beEqualTo(expectedBody.stringValue)
+    TestMachine(r, decision, ReqRespData()).responseBody.stringValue must beEqualTo(expectedBody.stringValue)
   }
 
   def testErrorResBodySet = {
@@ -90,6 +102,33 @@ class WebmachineRunnerSpecs
     val decision = mock[Decision]
     val expectedBody: HTTPBody = "body"
     decision.apply(r) returns ResT.errorT[r.ReqRespState, Decision]("newbody")
-    TestMachine(r, decision, ReqRespData(responseBody = expectedBody)).map(_.responseBody.stringValue).unsafePerformIO must beEqualTo(expectedBody.stringValue)
+    TestMachine(r, decision, ReqRespData(responseBody = expectedBody)).responseBody.stringValue must beEqualTo(expectedBody.stringValue)
   }
+
+  def testDecisionApplyThrows = {
+    val r: Resource = createResource
+    val decision = mock[Decision]
+    val msg = "test"
+    decision.apply(r) throws new RuntimeException(msg)
+    val data = TestMachine(r, decision, ReqRespData())
+    (data.statusCode must beEqualTo(500)) and (data.responseBody.stringValue must beEqualTo(msg))
+  }
+
+  def testStateThrows = {
+    val r: Resource = createResource
+    val decision = mock[Decision]
+    val msg = "test2"
+    decision.apply(r) returns ResT.resT[r.ReqRespState](StateT[IO,(ReqRespData,r.Context),Res[Decision]](s => sys.error(msg)))
+    val data = TestMachine(r, decision, ReqRespData())
+    (data.statusCode must beEqualTo(500)) and (data.responseBody.stringValue must beEqualTo(msg))
+  }
+
+  def testStateIOThrows = {
+    val r: Resource = createResource
+    val decision = mock[Decision]
+    val msg = "test3"
+    decision.apply(r) returns ResT.resT[r.ReqRespState](StateT[IO,(ReqRespData,r.Context),Res[Decision]](s => IO(sys.error(msg))))
+    val data = TestMachine(r, decision, ReqRespData())
+    (data.statusCode must beEqualTo(500)) and (data.responseBody.stringValue must beEqualTo(msg))
+  }                   
 }
