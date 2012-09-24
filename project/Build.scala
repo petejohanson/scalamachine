@@ -71,9 +71,10 @@ object Dependencies {
   lazy val slf4j          = "org.slf4j"               % "slf4j-api"                     % "1.6.4"           % "compile"
   // Don't want to keep this dependency long term but for now its fastest way to get date parsing for http
   lazy val commonsHttp    = "commons-httpclient"      % "commons-httpclient"            % "3.1"             % "compile" withSources()
-  lazy val liftweb        = "net.liftweb"             %% "lift-webkit"                  % "2.4"             % "compile" withSources()
+  lazy val liftweb        = "net.liftweb"             %% "lift-webkit"                  % "2.4"             % "compile" withSources()  
   lazy val jetty          = "org.eclipse.jetty"       % "jetty-webapp"                  % "7.3.0.v20110203" % "container"
-  lazy val finagle        = "com.twitter"             %% "finagle-http"                 % "1.9.12"          % "compile" withSources()
+  lazy val netty          = "io.netty"                % "netty"                         % "3.5.7.Final"     % "compile" withSources()
+//  lazy val finagle        = "com.twitter"             %% "finagle-http"                 % "1.9.12"          % "compile" withSources()
   lazy val logback        = "ch.qos.logback"          % "logback-classic"               % "1.0.0"           % "compile" withSources()
   lazy val specs2         = "org.specs2"              %% "specs2"                       % "1.12.1.1"        % "test" withSources()
   lazy val scalacheck     = "org.scalacheck"          %% "scalacheck"                   % "1.10.0"          % "test" withSources()
@@ -96,7 +97,7 @@ object ScalamachineBuild extends Build {
 
   lazy val scalamachine = Project("scalamachine", file("."),
     settings = standardSettings ++ publishSettings ++ Seq(publishArtifact in Compile := false),
-    aggregate = Seq(core) // ,lift,netty)
+    aggregate = Seq(core,nettySupport, nettyExample) // ,lift)
   )
 
   lazy val core = Project("scalamachine-core", file("core"),
@@ -111,7 +112,6 @@ object ScalamachineBuild extends Build {
       )
   )
 
-
   /*
   lazy val lift = Project("scalamachine-lift", file("lift"),
     dependencies = Seq(core), 
@@ -120,17 +120,18 @@ object ScalamachineBuild extends Build {
         name := "scalamachine-lift",
         libraryDependencies ++= Seq(liftweb)
       )
-  )
+  )*/
 
-  lazy val netty = Project("scalamachine-netty", file("netty"),
+  lazy val nettySupport = Project("scalamachine-netty", file("netty"),
     dependencies = Seq(core),
     settings = standardSettings ++ publishSettings ++
       Seq(
         name := "scalamachine-netty",
-        libraryDependencies ++= Seq(finagle)
+        libraryDependencies ++= Seq(netty)
       )
   )
   
+  /*
   lazy val liftExample = Project("scalamachine-lift-example", file("examples/lift"),
     dependencies = Seq(lift),
     settings = standardSettings ++ webSettings ++
@@ -147,16 +148,16 @@ object ScalamachineBuild extends Build {
         name := "scalamachine-finagle-example",
         libraryDependencies ++= Seq(logback)
       )
-  )
+  )*/
 
-  lazy val nettyExample = Project("scalamachine-netty-example", file("examples/netty"), 
-    dependencies = Seq(netty),
+  lazy val nettyExample = Project("netty-example", file("examples/netty"), 
+    dependencies = Seq(nettySupport),
     settings = standardSettings ++
       Seq(
 	name := "scalamachine-netty-example", 
         libraryDependencies ++= Seq(logback)
     )
-  ) */             
+  )              
 
 }
 

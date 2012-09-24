@@ -1,40 +1,32 @@
 package code
 
+import java.net.InetSocketAddress
+import java.util.concurrent.Executors
 import org.jboss.netty.bootstrap.ServerBootstrap
 import org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory
-import java.util.concurrent.Executors
-import scalamachine.netty.{NettyWebmachineV3, ScalamachineChannelPipelineFactory}
 import org.jboss.netty.handler.execution.{OrderedMemoryAwareThreadPoolExecutor, ExecutionHandler}
-import java.net.InetSocketAddress
-import scalamachine.core.dispatch.Route._
-import resources.{LocalFileResource, EmptyResource, UnavailableResource}
-import scalamachine.core.flow.{FlowLogging, FlowRunner}
-import scalamachine.core.dispatch.DispatchLogging
-
-object ScalamachineExample extends NettyWebmachineV3 with DispatchLogging {
-
-  route {
-    pathMatching {
-      "unavailable"
-    } serve new UnavailableResource
-  }
-
-  route {
-    pathMatching {
-      "empty"
-    } serve  new EmptyResource
-  }
-
-  route {
-    pathMatching {
-      "localfile"
-    } serve new LocalFileResource
-  }
-
-  override val flowRunner = new FlowRunner //with FlowLogging
-}
+import org.slf4j.LoggerFactory
+import scalamachine.netty.ScalamachineV3ChannelPipelineFactory
+import scalamachine.core.dispatch.{RoutingTable, Route}
+import Route._
+import scalamachine.core.v3.WebmachineV3Runner
+import resources.{DefaultResource, UnavailableResource, LocalFileResource}
 
 object ExampleServer extends App {
+
+  private val logger = LoggerFactory.getLogger(this.getClass)
+
+  val defaultRoute = pathMatching {
+    "default"
+  } serve DefaultResource
+
+  val unavailableRoute = pathMatching {
+    "unavailable"
+  } serve UnavailableResource
+
+  val localFileRoute = pathMatching {
+    "localfile"
+  } serve LocalFileResource
 
   val bootstrap = new ServerBootstrap(
     new NioServerSocketChannelFactory(
@@ -44,8 +36,18 @@ object ExampleServer extends App {
   )
 
   val execHandler = new ExecutionHandler(new OrderedMemoryAwareThreadPoolExecutor(16, 1048576, 1048576))
-  bootstrap.setPipelineFactory(new ScalamachineChannelPipelineFactory(execHandler, ScalamachineExample))
+  bootstrap.setPipelineFactory(
+    new ScalamachineV3ChannelPipelineFactory(
+      execHandler, 
+      RoutingTable(
+        defaultRoute,
+        unavailableRoute,
+        localFileRoute
+      )
+    )
+  )
 
+  logger.info("starting Scalamachine Netty Example Server on port 8080")
   bootstrap.bind(new InetSocketAddress(8080))
 
 }

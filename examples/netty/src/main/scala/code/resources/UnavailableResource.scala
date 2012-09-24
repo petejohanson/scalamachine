@@ -1,8 +1,13 @@
 package code.resources
 
-import scalamachine.core.{ValueRes, ReqRespData, Resource}
+import scalaz.syntax.monad._
+import scalamachine.core.Resource
 
+object UnavailableResource extends Resource {
 
-class UnavailableResource extends Resource {
-  override def serviceAvailable(data: ReqRespData) = (data, ValueRes(false))
+  type Context = Int
+
+  def init = 0
+
+  override def serviceAvailable: Result[Boolean] = false.point[Result]
 }

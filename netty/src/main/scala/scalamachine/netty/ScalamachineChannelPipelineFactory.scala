@@ -3,10 +3,14 @@ package scalamachine.netty
 import org.jboss.netty.channel.{Channels, ChannelPipeline, ChannelPipelineFactory}
 import org.jboss.netty.handler.codec.http._
 import org.jboss.netty.handler.execution.ExecutionHandler
-import scalamachine.core.dispatch.DispatchTable
-import scalamachine.internal.scalaz.Id._
+import scalamachine.core.dispatch.RoutingTable
+import scalamachine.core.flow.WebmachineRunner
+import scalamachine.core.v3.WebmachineV3Runner
 
-class ScalamachineChannelPipelineFactory(private val execHandler: ExecutionHandler, dispatchTable: DispatchTable[HttpRequest, NettyHttpResponse, Id])
+class ScalamachineV3ChannelPipelineFactory(execHandler: ExecutionHandler, routes: RoutingTable) 
+  extends ScalamachineChannelPipelineFactory(execHandler, routes, WebmachineV3Runner)
+
+class ScalamachineChannelPipelineFactory(private val execHandler: ExecutionHandler, routes: RoutingTable, runner: WebmachineRunner)
   extends ChannelPipelineFactory {
 
   def getPipeline: ChannelPipeline = {
@@ -16,7 +20,7 @@ class ScalamachineChannelPipelineFactory(private val execHandler: ExecutionHandl
     pipeline.addLast("chunk-aggregator", new HttpChunkAggregator(1048576)) // not handling streaming requests yet
     pipeline.addLast("response-encoder", new HttpResponseEncoder)
     pipeline.addLast("execution-handler", execHandler)
-    pipeline.addLast("requst-handler", new ScalamachineRequestHandler(dispatchTable))
+    pipeline.addLast("request-handler", new ScalamachineRequestHandler(routes, runner))
 
 
     pipeline

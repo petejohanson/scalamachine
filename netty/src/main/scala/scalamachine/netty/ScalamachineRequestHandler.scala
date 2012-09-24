@@ -1,29 +1,34 @@
 package scalamachine.netty
 
+import scalaz.effect.IO
+import scalaz.syntax.monad._
+import scalaz.iteratee.{EnumeratorT, IterateeT}
 import org.jboss.netty.channel._
 import org.jboss.netty.handler.codec.http._
-import scalamachine.core.dispatch.DispatchTable
-import scalamachine.internal.scalaz.Id._
-import scalamachine.core.{HTTPBody, LazyStreamBody}
 import org.jboss.netty.buffer.ChannelBuffers
 import org.slf4j.LoggerFactory
-import scalamachine.internal.scalaz.effect.IO
+import scalamachine.core.dispatch.RoutingTable
+import scalamachine.core.flow.WebmachineRunner
+import scalamachine.core.{HTTPBody, LazyStreamBody}
 
-class ScalamachineRequestHandler(dispatchTable: DispatchTable[HttpRequest, NettyHttpResponse, Id])
-  extends SimpleChannelUpstreamHandler {
+class ScalamachineRequestHandler(routes: RoutingTable, runner: WebmachineRunner) extends SimpleChannelUpstreamHandler with ReqRespDataConverters {
 
   private val logger = LoggerFactory.getLogger(classOf[ScalamachineRequestHandler])
 
   override def messageReceived(ctx: ChannelHandlerContext, evt: MessageEvent) {
     val request = evt.getMessage.asInstanceOf[HttpRequest]
-
+   
     if (HttpHeaders.is100ContinueExpected(request)) send100Continue(evt)
     else {
-      val response: NettyHttpResponse = dispatchTable(request) getOrElse {
+      val keepAlive = HttpHeaders.isKeepAlive(request)
+      val doWrite = runner.runIO(request, routes, fromHostData(_: HttpRequest), toHostData(_)) getOrElse {
         FixedLengthResponse(new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.NOT_FOUND))
+      } flatMap {
+        case FixedLengthResponse(r) => writeFixedLengthResponse(evt, r, keepAlive)
+        case ChunkedResponse(r, cs) => writeChunkedResponse(evt, r, cs, keepAlive)
       }
 
-      writeResponse(evt, request, response)
+      doWrite.unsafePerformIO
     }
   }
 
@@ -32,17 +37,23 @@ class ScalamachineRequestHandler(dispatchTable: DispatchTable[HttpRequest, Netty
     logger.error("Exception in ScalamachineRequestHandler", evt.getCause)
   }
 
-  private def writeResponse(evt: MessageEvent, request: HttpRequest, response: NettyHttpResponse) {
-    val keepAlive = HttpHeaders.isKeepAlive(request)
+  private def writeFixedLengthResponse(evt: MessageEvent, response: HttpResponse, keepAlive: Boolean): IO[Unit] = IO {
+    val prepared = prepareResponse(response, keepAlive, isChunked = false)
+    val mbWrite = writeToChannel(evt, prepared)
 
-    val (finalResponse, mbChunks) = response match {
-      case FixedLengthResponse(r) => (prepareResponse(r, keepAlive, false), None)
-      case ChunkedResponse(r, chunks) => (prepareResponse(r, keepAlive, true), Some(chunks))
-    }
+    if (!keepAlive) mbWrite.foreach(_.addListener(ChannelFutureListener.CLOSE))
+  }
 
-    val responseWriteFuture = evt.getChannel.write(finalResponse)
+  private def writeChunkedResponse(evt: MessageEvent, 
+                                   response: HttpResponse, 
+                                   chunks: IO[EnumeratorT[HTTPBody.Chunk,IO]], 
+                                   keepAlive: Boolean): IO[Unit] = IO {
+    val prepared = prepareResponse(response, keepAlive, isChunked = true)    
+    writeToChannel(evt, prepared)    
+  } >> chunks flatMap { enumerator => (writeChunks(evt, keepAlive) &= enumerator).run }
 
-    lazy val writeChunks = LazyStreamBody.forEachChunkUntilFalse {
+  private def writeChunks(evt: MessageEvent, keepAlive: Boolean): IterateeT[HTTPBody.Chunk, IO, Unit] = 
+    LazyStreamBody.forEachChunkUntilFalse {
       case HTTPBody.ByteChunk(bytes) => {
         val chunk = new DefaultHttpChunk(ChannelBuffers.wrappedBuffer(bytes))
         writeToChannel(evt, chunk).isDefined
@@ -54,25 +65,18 @@ class ScalamachineRequestHandler(dispatchTable: DispatchTable[HttpRequest, Netty
       case HTTPBody.EOFChunk => writeFinalChunk(evt, keepAlive)
     }
 
-    mbChunks map {
-      chunks => {
-        val doChunkWriting: IO[Unit] = for {
-          chunkEnumerator <- chunks
-          _ <- (writeChunks &= chunkEnumerator).run
-        } yield ()
-        doChunkWriting.unsafePerformIO()
-      }
-    } getOrElse {
-      if (!keepAlive) responseWriteFuture.addListener(ChannelFutureListener.CLOSE)
-    }
-  }
-
-  private def writeToChannel(e: MessageEvent, chunk: HttpChunk): Option[ChannelFuture] = {
+  private def writeToChannel(e: MessageEvent, msg: HttpResponse): Option[ChannelFuture] = {
     if (e.getChannel.isConnected) {
-      Some(e.getChannel.write(chunk))
+      Some(e.getChannel.write(msg))
     } else None
   }
-
+  
+  private def writeToChannel(e: MessageEvent, msg: HttpChunk): Option[ChannelFuture] = {
+    if (e.getChannel.isConnected) {
+      Some(e.getChannel.write(msg))
+    } else None
+  }
+  
   private def writeFinalChunk(e: MessageEvent, keepAlive: Boolean): Boolean = {
     writeToChannel(e, HttpChunk.LAST_CHUNK) map { future =>
       if (!keepAlive) {
@@ -84,16 +88,16 @@ class ScalamachineRequestHandler(dispatchTable: DispatchTable[HttpRequest, Netty
   }
 
   private def prepareResponse(response: HttpResponse, isKeepAlive: Boolean, isChunked: Boolean): HttpResponse = {
+
     if (isKeepAlive) {
       response.setHeader(HttpHeaders.Names.CONNECTION, HttpHeaders.Values.KEEP_ALIVE)
     }
 
-    if (!isChunked) {
-      response.setChunked(false)
-      response.setHeader(HttpHeaders.Names.CONTENT_LENGTH, response.getContent.readableBytes())
-    } else {
-      response.setChunked(true)
+    response.setChunked(isChunked)
+    if (isChunked) {
       response.setHeader(HttpHeaders.Names.TRANSFER_ENCODING, HttpHeaders.Values.CHUNKED)
+    } else {
+      response.setHeader(HttpHeaders.Names.CONTENT_LENGTH, response.getContent.readableBytes())
     }
 
     response
@@ -101,7 +105,7 @@ class ScalamachineRequestHandler(dispatchTable: DispatchTable[HttpRequest, Netty
 
   private def send100Continue(e: MessageEvent) {
     val response = new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.CONTINUE)
-    e.getChannel.write(response)
+    writeToChannel(e, response)
   }
 
 }
