@@ -452,18 +452,16 @@ class RouteSpecs extends Specification with ScalaCheck { def is =
 
   // generates a non-empty token list and a set of indexes to be intended to be used as data parts
   val tokensAndDataPartIdxs = for {
-    ls <- nonEmptyTokens suchThat { _.size > 4 }
-    idxs <- {
-      val lsSize = ls.toSet.size
-      Gen.containerOf1[Set,Int](Gen.choose(0,lsSize - 1)) suchThat { _.size < lsSize - 2 }
-    }
-  } yield (ls.toSet.toList, idxs)
+    ls <- nonEmptyTokens suchThat { _.size > 4 } map { _.toSet.toList }
+    idxsSize <- Gen.choose(1, ls.size - 2)
+    idxs <- Gen.containerOfN[Set,Int](idxsSize, Gen.choose(0,ls.size - 1))
+  } yield (ls, idxs)
   
   // generates a non-empty token list, a set of indexes inteded to be data parts an index to change that is not one of the data part indexes
   // and a value to change to
   val tokensDataPartIdxsAndChange = for {
     (ls,idxs) <- tokensAndDataPartIdxs
-    n <- Gen.choose(0,ls.size - 1).suchThat(n => !(idxs.contains(n)))
+    n <- Gen.oneOf((Range(0,ls.size - 1).toList.toSet diff idxs.toSet).toList)
     s <- tok
   } yield (ls,idxs,n,s)
 
