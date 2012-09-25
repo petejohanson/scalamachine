@@ -234,6 +234,7 @@ object HTTPHeaders {
   val AcceptRanges         = createHeader("accept-ranges")
   val Age                  = createHeader("age")
   val Allow                = createHeader("allow")
+  val Authorization        = createHeader("authorization")
   val CacheControl         = createHeader("cache-control")
   val Connection           = createHeader("connection")
   val ContentDisposition   = createHeader("content-disposition")
