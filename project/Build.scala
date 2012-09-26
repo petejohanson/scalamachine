@@ -22,8 +22,7 @@ object BuildSettings {
         Some("snapshots" at nexus + "content/repositories/snapshots")
       else
         Some("releases" at nexus + "service/local/staging/deploy/maven2")
-    }
-
+  }
 
   lazy val publishSettings = Seq(
     publishSetting,
@@ -61,7 +60,8 @@ object BuildSettings {
     scalacOptions ++= Seq("-deprecation", "-unchecked", "-feature", "-language:implicitConversions", "-language:higherKinds"),
     testOptions in Test += Tests.Argument("html console"),
     publishArtifact in Test := false,
-    resolvers += "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots"
+    resolvers += "Sonatype OSS Snapshots" at "https://oss.sonatype.org/content/repositories/snapshots",
+    credentials += Credentials(Path.userHome / ".ivy2" / ".credentials")
   )
 
 }
