@@ -1,6 +1,6 @@
 resolvers += "sbt-idea-repo" at "http://mpeltonen.github.com/maven/"
 
-addSbtPlugin("com.github.mpeltonen" % "sbt-idea" % "1.1.0")
+addSbtPlugin("com.github.mpeltonen" % "sbt-idea" % "1.0.0")
 
 libraryDependencies <+= sbtVersion(v => v match {
   case "0.11.0" => "com.github.siasia" %% "xsbt-web-plugin" % "0.11.0-0.2.8"
