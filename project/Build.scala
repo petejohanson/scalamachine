@@ -68,26 +68,29 @@ object BuildSettings {
 
 object Dependencies {
   /* Core Dependencies */
-  lazy val scalaz7        = "org.scalaz"              %% "scalaz-iteratee"              % "7.0.0-M3"        % "compile" withSources()
+  // FUCK YOU SBT!!! This should use %% but sbt 0.12 got all proper about binary compat.
+  lazy val scalaz7        = "org.scalaz"              % "scalaz-iteratee_2.10.0-M7"     % "7.0.0-M3"        % "compile"
   // Don't want to keep this dependency long term but for now its fastest way to get date parsing for http
-  lazy val commonsHttp    = "commons-httpclient"      % "commons-httpclient"            % "3.1"             % "compile" withSources()
+  lazy val commonsHttp    = "commons-httpclient"      % "commons-httpclient"            % "3.1"             % "compile"
 
   /* Host Framework Dependencies */
-  lazy val netty          = "io.netty"                % "netty"                         % "3.5.7.Final"     % "compile" withSources()
-  lazy val servletApi     = "javax.servlet"           % "servlet-api"                   % "2.5"             % "compile" withSources()
+  lazy val netty          = "io.netty"                % "netty"                         % "3.5.7.Final"     % "compile"
+  lazy val servletApi     = "javax.servlet"           % "servlet-api"                   % "2.5"             % "compile"
 
   /* Example Project Dependencies */
   lazy val jetty          = "org.eclipse.jetty"       % "jetty-webapp"                  % "7.3.0.v20110203" % "container"
 
   /* Logging */
-  lazy val logback        = "ch.qos.logback"          % "logback-classic"               % "1.0.0"           % "compile" withSources()
+  lazy val logback        = "ch.qos.logback"          % "logback-classic"               % "1.0.0"           % "compile"
   lazy val slf4j          = "org.slf4j"               % "slf4j-api"                     % "1.6.4"           % "compile"
 
   /* Test */
-  lazy val specs2         = "org.specs2"              %% "specs2"                       % "1.12.1.1"        % "test" withSources()
-  lazy val scalacheck     = "org.scalacheck"          %% "scalacheck"                   % "1.10.0"          % "test" withSources()
-  lazy val mockito        = "org.mockito"             % "mockito-all"                   % "1.9.0"           % "test" withSources()
-  lazy val hamcrest       = "org.hamcrest"            % "hamcrest-all"                  % "1.1"             % "test" withSources()
+  // ONCE AGAIN< FUCK YOU SBT, there is probably a new specs version for this but im not searching right now
+  lazy val specs2         = "org.specs2"              %  "specs2_2.10.0-M7"             % "1.12.1.1"        % "test"
+  // AND YES, FUCK YOU SBT...AGAIN
+  lazy val scalacheck     = "org.scalacheck"          % "scalacheck_2.10.0-M7"          % "1.10.0"          % "test"
+  lazy val mockito        = "org.mockito"             % "mockito-all"                   % "1.9.0"           % "test"
+  lazy val hamcrest       = "org.hamcrest"            % "hamcrest-all"                  % "1.1"             % "test"
   lazy val pegdown        = "org.pegdown"             % "pegdown"                       % "1.0.2"           % "test"
 }
 
