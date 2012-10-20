@@ -1,3 +1,2 @@
 alias remotepub=;scalamachine-core/publish; scalamachine-netty/publish; scalamachine-servlet/publish
 alias localpub=;scalamachine-core/publish-local; scalamachine-netty/publish-local; scalamachine-servlet/publish-local
-alias sitepub=ghpages-push-site

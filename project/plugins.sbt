@@ -16,6 +16,4 @@ addSbtPlugin("com.typesafe.sbt" % "sbt-site" % "0.6.0")
 
 resolvers += "jgit-repo" at "http://download.eclipse.org/jgit/maven"
 
-addSbtPlugin("com.jsuereth" % "sbt-ghpages-plugin" % "0.4.0")
-
 addSbtPlugin("org.ensime" % "ensime-sbt-cmd" % "0.0.10")

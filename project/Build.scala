@@ -1,14 +1,10 @@
 import sbt._
+import Keys._
+import com.typesafe.sbt.SbtSite._
+import SiteKeys._
 import com.github.siasia._
 import WebPlugin._
-import com.jsuereth.sbtsite._
-import com.jsuereth.git._
-import com.jsuereth.ghpages._
-import SitePlugin._
-import SiteKeys._
-import GitPlugin._
-import GhPages._
-import Keys._
+
 
 object BuildSettings {
 
@@ -98,28 +94,16 @@ object ScalamachineBuild extends Build {
   import BuildSettings._
   import Dependencies._
 
-  private def updatedRepo(repo: SettingKey[File], remote: SettingKey[String], branch: SettingKey[Option[String]]) =
-       (repo, remote, branch, GitKeys.gitRunner, streams) map { (local, uri, branch, git, s) => 
-         git.updated(remote = uri, cwd = local, branch = branch, log = s.log); 
-         local 
-    }
-
-  val docsRepo = SettingKey[String]("docs-repo", "the remote repo that contains documentation for this project")
-
   lazy val scalamachine = Project("scalamachine", file("."),
     settings = standardSettings ++ publishSettings ++ Seq(publishArtifact in Compile := false),
     aggregate = Seq(core,nettySupport,servletSupport,nettyExample,servletExample)
   )
 
   lazy val core = Project("scalamachine-core", file("core"),
-    settings = standardSettings ++ publishSettings ++ site.settings ++ site.jekyllSupport("jekyll") ++ site.includeScaladoc() ++ ghpages.settings ++
+    settings = standardSettings ++ publishSettings ++ site.settings ++ site.jekyllSupport("jekyll") ++ site.includeScaladoc() ++ 
       Seq(
         name := "scalamachine-core",
-        libraryDependencies ++= Seq(scalaz7,commonsHttp,specs2,scalacheck,mockito,hamcrest,pegdown),
-	git.remoteRepo := "git@github.com:stackmob/scalamachine",
-        docsRepo := "git@github.com:stackmob/scalamachine.site",
-        git.branch in ghpages.updatedRepository := Some("master"),
-        ghpages.updatedRepository <<= updatedRepo(ghpages.repository, docsRepo, git.branch in ghpages.updatedRepository)  
+        libraryDependencies ++= Seq(scalaz7,commonsHttp,specs2,scalacheck,mockito,hamcrest,pegdown)
       )
   )
 
