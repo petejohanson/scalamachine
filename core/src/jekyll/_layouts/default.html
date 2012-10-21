@@ -16,39 +16,10 @@
     <link rel="stylesheet" href="css/layout.css" type="text/css" />
   </head>
   <body class="container-fluid" id="content">
-    <div class="navbar navbar-fixed-top">
-      <div class="navbar-inner">
-        <div class="container">
-          <a class="brand" href="/">Scalamachine</a>
-	  <ul class="nav">
-	    <li><a href="/getting-started-guide.html">Getting Started</a></li>
-	    <li><a href="/resources.html">Resources</a></li>
-	    <li><a href="/dispatch.html">Dispatch</a></li>
-	    <li><a href="/latest/api/">Scaladoc</a></li>
-	  </ul>
-        </div>
-      </div>
-    </div>
+    {% include navbar.html %}
     <div class="row-fluid span12">
       {{ content }}
     </div> 
-
-    <script type="text/javascript" src="js/jquery.js"></script> 
-    <script type="text/javascript" src="js/bootstrap.js"></script> 
-    <script type="text/javascript" src="js/bootstrap-carousel.js"></script> 
-    <script type="text/javascript" src="js/bootstrap-buttons.js"></script> 
-<script type="text/javascript">
-  var _gauges = _gauges || [];
-  (function() {
-    var t   = document.createElement('script');
-    t.type  = 'text/javascript';
-    t.async = true;
-    t.id    = 'gauges-tracker';
-    t.setAttribute('data-site-id', '4fc34149f5a1f51bd0000066');
-    t.src = '//secure.gaug.es/track.js';
-    var s = document.getElementsByTagName('script')[0];
-    s.parentNode.insertBefore(t, s);
-  })();
-</script>
+    {% include js.html %}
   </body>
 </html>
