@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Scalamachine: {{ page.title }}</title>
+    <meta name="description" content="StackMob Internal Talks App">
+    <meta name="author" content="Jordan West">
+    
+    <!-- Le HTML5 shim, for IE6-8 support of HTML elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <link href="css/bootstrap.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="css/layout.css" type="text/css" />
+  </head>
+  <body class="container-fluid" id="content" data-spy="scroll" data-target="#guide-nav">
+    {% include navbar.html %}
+    <div class="row-fluid">
+      <div class="span2" id="guide-nav">
+        <ul class="nav nav-list affix" data-spy="affix" data-offset-top="0">
+          <li><a href="#setting_up">Setting Up</a></li>
+          <li><a href="#hello_scalamachine">Hello, Scalamachine</a></li>
+          <li>
+            <a href="#scalamachine_overview">Scalamachine Overview</a>
+            <ul class="nav nav-list">
+              <li><a href="#pluggable_http_frameworks">Pluggable HTTP Frameworks</a></li>
+              <li><a href="#http_semantics">HTTP Semantics</a></li>
+              <li><a href="#resources">Resources</a></li>
+              <li><a href="#request_routing">Request Routing</a></li>
+            </ul>
+          </li>
+          <li class="divider"></li>
+          <li><a href="#next_steps">Next Steps</a></li>
+        </ul>
+      </div>
+      <div class="span10">
+        {{ content }}
+      </div>
+    </div> 
+    {% include js.html %}
+  </body>
+</html>
