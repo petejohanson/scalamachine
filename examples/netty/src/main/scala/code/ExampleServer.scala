@@ -7,7 +7,7 @@ import org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory
 import org.jboss.netty.handler.execution.{OrderedMemoryAwareThreadPoolExecutor, ExecutionHandler}
 import org.slf4j.LoggerFactory
 import scalamachine.netty.ScalamachineV3ChannelPipelineFactory
-import scalamachine.core.dispatch.{RoutingTable, Route}
+import scalamachine.core.routing.{RoutingTable, Route}
 import Route._
 import scalamachine.core.v3.WebmachineV3Runner
 import resources.{DefaultResource, UnavailableResource, LocalFileResource}
@@ -28,6 +28,19 @@ object ExampleServer extends App {
     "localfile"
   } serve LocalFileResource
 
+  val routes = RoutingTable(
+    pathMatching {
+      "default"
+    } serve DefaultResource,
+    pathMatching {
+      "unavailable"
+    } serve UnavailableResource,
+    pathMatching {
+      "localfile"
+    } serve LocalFileResource
+  )
+
+
   val bootstrap = new ServerBootstrap(
     new NioServerSocketChannelFactory(
       Executors.newCachedThreadPool(),
@@ -39,11 +52,7 @@ object ExampleServer extends App {
   bootstrap.setPipelineFactory(
     new ScalamachineV3ChannelPipelineFactory(
       execHandler, 
-      RoutingTable(
-        defaultRoute,
-        unavailableRoute,
-        localFileRoute
-      )
+      routes    
     )
   )
 

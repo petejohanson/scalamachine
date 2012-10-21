@@ -1,6 +1,6 @@
 package scalamachine.servlet
 
-import scalamachine.core.dispatch.RoutingTable
+import scalamachine.core.routing.RoutingTable
 
 /**
  * Wraps the [[scalamachine.core.RoutingTable]] for a [[scalamachine.servlet.ScalamachineFilter]].

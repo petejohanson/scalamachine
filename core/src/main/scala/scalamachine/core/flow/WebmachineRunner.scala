@@ -7,7 +7,7 @@ import scalaz.syntax.monad._
 import scalaz.effect.IO
 import IO._
 import OptionT._
-import dispatch.RoutingTable
+import routing.RoutingTable
 
 trait WebmachineRunner {
 

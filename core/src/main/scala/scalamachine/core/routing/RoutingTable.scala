@@ -1,5 +1,5 @@
 package scalamachine.core
-package dispatch
+package routing
 
 /**
  * A collection of [[scalamachine.core.dispatch.Rewrite]] and [[scalamachine.core.dispatch.Route]]

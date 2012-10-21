@@ -7,7 +7,7 @@ import org.jboss.netty.channel._
 import org.jboss.netty.handler.codec.http._
 import org.jboss.netty.buffer.ChannelBuffers
 import org.slf4j.LoggerFactory
-import scalamachine.core.dispatch.RoutingTable
+import scalamachine.core.routing.RoutingTable
 import scalamachine.core.flow.WebmachineRunner
 import scalamachine.core.{HTTPBody, LazyStreamBody}
 

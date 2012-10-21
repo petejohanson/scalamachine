@@ -4,7 +4,7 @@ import javax.servlet._
 import javax.servlet.http._
 import java.io.IOException
 import scalamachine.core.flow.WebmachineRunner
-import scalamachine.core.dispatch.RoutingTable
+import scalamachine.core.routing.RoutingTable
 
 class ScalamachineFilter extends Filter with ReqRespDataConverters {
 

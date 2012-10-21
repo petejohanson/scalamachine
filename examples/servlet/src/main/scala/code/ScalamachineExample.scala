@@ -2,9 +2,9 @@ package code
 
 import scalaz.syntax.monad._
 import scalamachine.servlet.ServletRoutingTable
-import scalamachine.core.dispatch.Route._
 import scalamachine.core.{ValueRes, ReqRespData, Resource}
-import scalamachine.core.dispatch.RoutingTable
+import scalamachine.core.routing.RoutingTable
+import scalamachine.core.routing.Route._
 
 object DefaultResource extends Resource {
   // fake a context since we don't use any

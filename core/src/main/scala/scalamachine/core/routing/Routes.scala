@@ -1,5 +1,5 @@
 package scalamachine.core
-package dispatch
+package routing
 
 import ReqRespData.{PathData, HostData}
 

@@ -3,7 +3,7 @@ package scalamachine.netty
 import org.jboss.netty.channel.{Channels, ChannelPipeline, ChannelPipelineFactory}
 import org.jboss.netty.handler.codec.http._
 import org.jboss.netty.handler.execution.ExecutionHandler
-import scalamachine.core.dispatch.RoutingTable
+import scalamachine.core.routing.RoutingTable
 import scalamachine.core.flow.WebmachineRunner
 import scalamachine.core.v3.WebmachineV3Runner
 
