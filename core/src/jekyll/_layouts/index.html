@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Scalamachine: {{ page.title }}</title>
+    <meta name="author" content="Jordan West">
+    
+    <!-- Le HTML5 shim, for IE6-8 support of HTML elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <link href="css/bootstrap.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="css/layout.css" type="text/css" />
+  </head>
+  <body class="container-fluid intro-body" id="content">
+    {% include navbar.html %}
+    <div class="container-fluid introduction">
+      <div class="row-fluid">
+        <div class="span12">
+          <div class="page-header">
+            <h1>
+              Scalamachine
+              <small>
+                HTTP Application Logic for Your Favorite JVM-based Server
+              </small>
+            </h1>  
+            <div class="lead">
+              {{ content }}
+            </div>
+          </div>
+        </div>
+      </div> 
+      <div class="row-fluid intro-links">
+        <div class="span12">
+          <a href="/getting-started-guide.html">
+            <button type="button" class="btn btn-primary btn-large">
+              Get Started
+            </button>
+          </a>
+          <a href="https://github.com/stackmob/scalamachine">
+            <button type="button" class="btn btn-primary btn-large">
+              Contribute
+            </button>
+          </a>
+        </div>
+      </div>
+    </div>
+    <div class="container-fluid intro-detail">
+      <div class="row-fluid">
+        <div class="span4">
+          <strong class="detail-title">Webmachine</strong>
+          Scalamachine is port of 
+          <a href="https://github.com/basho/webmachine">Basho's Webmachine</a>, 
+          written in Erlang. Webmachine defines a 
+          <a href="http://wiki.basho.com/images/http-headers-status-v3.png">Flow Diagram</a> 
+          that encodes HTTP-semantics into a set of easy to use conventions. 
+        </div>
+        <div class="span4">
+          <strong class="detail-title">Core</strong>
+          scalamachine-core contains the implementation of the Webmachine Flow Diagram,  
+          the primary abstraction used in Scalamachine applications -- the resource,
+          a data structure repsenting request and response data, and entry points necessary for
+          implementing support for existing JVM-based HTTP servers.
+        </div>
+        <div class="span4">
+          <strong class="detail-title">Scalaz</strong>
+          To enforce it's opinion on referential transparency,
+          Scalamachine relies heavily on 
+          <a href="http://github.com/scalaz/scalaz/tree/scalaz-seven">Scalaz7</a>
+          for things like typeclasses and monad transformers as well as enumerators/enumeratees
+          for streaming responses.
+        </div>
+      </div>
+    </div>
+    {% include js.html %}
+  </body>
+</html>

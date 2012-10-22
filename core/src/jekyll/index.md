@@ -1,12 +1,20 @@
 ---
-layout: default
-title: Home
+layout: index
+title: Scalamachine
 ---
 
-Scalamachine is a port of [Basho](http://basho.com)'s [Webmachine](http://github.com/basho/webmachine) to Scala. Pluggable into your choice of existing server-side web frameworks, it enables development of rich REST APIs that conform to HTTP semantics. Develop your API alongside your existing project or standalone. 
+Write well-formed HTTP APIs in [Scala](http://www.scala-lang.org). Run them on 
+[Netty](http://netty.io) or using your choice of javax.servlet container (support for more 
+servers coming soon). 
 
-REST APIs revolve around the idea of resources. So do APIs built with Scalamachine. A resource in Scalamachine is an implementation of the `Resource` trait, a set of functions the implementation can override. The collection of functions define the properties of a resource and dictate how the resource can be interacted with from the outside world. For example, what content types, charsets and encodings are supported, the etag or last modified date of the resource, and how the request is authorized. Scalamachine puts all of these details upfront using them to do things like content negotiation and handling of conditional requests for you. Scalamachine implements the [V3 Webmachine Flow Diagram](http://wiki.basho.com/images/http-headers-status-v3.png) which defines the semantics of how each function is used. 
+Scalamachine is opinionated; its not for everyone. *It strives to treat HTTP as an application-level protocol, 
+be lightweight, help you write referentially transparent code
+and get out of your way when building the rest of your application*. 
 
-For each request Scalamachine must decide which resource it will run through the [flowchart](http://wiki.basho.com/images/http-headers-status-v3.png) to determine the result of the request. A `DispatchTable` defines routes, or url path patterns, and which resources are bound to requests matching those routes.
+You provide the details like what content-types your resources provide, 
+cache details like etags and last modified timestamps and how requests are authorized. 
+Scalamachine takes care of things like content-type negotiation, cache control and responding
+on failed authorization. 
 
-The project was just released open-sourced and published, more documentation will be added shortly.
+
+

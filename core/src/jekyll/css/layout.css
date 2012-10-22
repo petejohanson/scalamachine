@@ -1,5 +1,9 @@
 body {
-    padding-top: 5%;
+    padding-top: 60px;
+}
+
+body.intro-body {
+    padding: 40px 0 0 0;
 }
 
 .container-fluid h1 {
@@ -30,6 +34,45 @@ div.highlight {
 ol li {
     margin: 10px 0;
 }
+
+.container-fluid .navbar .nav {
+    margin: 0;
+}
+
+.introduction {
+    background-color: rgb(240, 240, 240);
+    border-bottom: 2px solid #999;
+    padding-bottom: 60px;
+}
+
+.introduction .page-header {
+    padding: 15px 150px 0 150px;
+    border-bottom-color: rgb(240, 240, 240);     
+}
+
+.introduction .page-header .lead {
+    text-align: justify;
+}
+
+.intro-links {
+    text-align: center;
+}
+
+.intro-links button {
+    margin: 0 20px;
+}
+
+.intro-detail {
+    padding: 0 175px;
+}
+
+.intro-detail .detail-title {
+    display: block;
+    text-align: center;
+    margin: 10px 0;
+    text-decoration: underline;
+}
+
 
 
 
