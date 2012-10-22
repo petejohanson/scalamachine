@@ -50,6 +50,15 @@
     <div class="container-fluid intro-detail">
       <div class="row-fluid">
         <div class="span4">
+          <strong class="detail-title">Scalaz7 & Scala 2.10</strong>
+          To enforce it's opinion on referential transparency,
+          Scalamachine relies heavily on 
+          <a href="http://github.com/scalaz/scalaz/tree/scalaz-seven">Scalaz7</a>
+          for things like typeclasses and monad transformers as well as enumerators/enumeratees
+          for streaming responses. Scalamachine also only runs on Scala 2.10 (currently M7)
+          or newer due to its use of path dependent types and bugs in previes Scala versions.
+        </div>
+        <div class="span4">
           <strong class="detail-title">Webmachine</strong>
           Scalamachine is port of 
           <a href="https://github.com/basho/webmachine">Basho's Webmachine</a>, 
@@ -63,14 +72,6 @@
           the primary abstraction used in Scalamachine applications -- the resource,
           a data structure repsenting request and response data, and entry points necessary for
           implementing support for existing JVM-based HTTP servers.
-        </div>
-        <div class="span4">
-          <strong class="detail-title">Scalaz</strong>
-          To enforce it's opinion on referential transparency,
-          Scalamachine relies heavily on 
-          <a href="http://github.com/scalaz/scalaz/tree/scalaz-seven">Scalaz7</a>
-          for things like typeclasses and monad transformers as well as enumerators/enumeratees
-          for streaming responses.
         </div>
       </div>
     </div>
