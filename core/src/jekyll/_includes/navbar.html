@@ -1,12 +1,28 @@
 <div class="navbar navbar-fixed-top">
   <div class="navbar-inner">
-    <div class="container">
-      <a class="brand" href="/">Scalamachine</a>
-      <ul class="nav">
+    <div class="container-fluid">
+      <a class="brand pull-left" href="/">Scalamachine</a>
+      <ul class="nav pull-right">
 	<li><a href="/getting-started-guide.html">Getting Started</a></li>
-	<li><a href="/resources.html">Resources</a></li>
-	<li><a href="/dispatch.html">Dispatch</a></li>
-	<li><a href="/latest/api/">Scaladoc</a></li>
+        <ul class="nav">
+          <li class="dropdown">
+            <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+              Documenation
+              <b class="caret"></b>
+            </a>
+            <ul class="dropdown-menu">
+              <li class="nav-header">Core</li>
+              <li><a href="/resources.html">Resources</a></li>
+	      <li><a href="/dispatch.html">Dispatch</a></li>       
+	      <li><a href="/latest/api/">ScalaDoc</a></li>
+              <li class="divider"></li>
+              <li class="nav-header">Server Modules</li>
+              <li><a href="/netty.html">Netty</a></li>
+	      <li><a href="/servlet.html">javax.servlet</a></li>       
+            </ul>
+          </li>
+        </ul>
+        <li><a href="https://github.com/stackmob/scalamachine/tree/master/examples">Examples</a>
       </ul>
     </div>
   </div>
