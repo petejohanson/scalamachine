@@ -73,6 +73,14 @@ ol li {
     text-decoration: underline;
 }
 
+.next-steps > h1 {
+    margin-top: 0;
+}
+
+.well.next-steps {
+    margin-top: 40px;
+}
+
 
 
 

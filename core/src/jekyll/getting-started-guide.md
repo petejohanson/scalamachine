@@ -148,6 +148,9 @@ That's it! We now have a fully functioning Scalamachine applicatiomn running on 
 In the next sections we will discuss some of the important details of Scalamachine and expand
 our `Resource` implementation to be a bit more interesting. 
 
+You can find a fully functioning example of this code in the 
+[Scalamachine Repo](https://github.com/stackmob/scalamachine/tree/possible-future/examples/netty/src/main/scala/code)
+
 # Scalamachine Overview
 
 Scalamachine is a port of [Webmachine](http://github.com/basho/webmachine) for [Erlang](http://erlang.org), 
@@ -195,7 +198,7 @@ any other functions. Since `Resource`s are just this simple collection of functi
 common functionality, like authorization, into traits and mix them into your implementations as 
 needed.
 
-The `Resource`'s state, as we just learned is, made up of two components:
+In detail, the `Resource`'s state is:
 
 <div class="well">
   <ol>
@@ -220,19 +223,150 @@ moment, lets first discuss the `Resource` functions in some more detail.
 
 ### Resource Functions in Detail
 
-scalamachine is opinionated framework, introduce referential transparency, etc
-return types, monad, transformer stack
-show how content types provided works
-start customizing the resource a bit
-the above may need a new section
+The functions you will implement as part of your `Resource` all have a very similar structure. 
+They only differ in the type of the value they return. Scalmachine isn't shy about being an 
+opinionated framework, especially when it comes to making your `Resource` function's referentially
+transparent. It tries to enforce this to the best of its ability (there is only so much you
+can do in Scala, which has no real effect-tracking). To do so, it leverages a specifc monad 
+transformer stack, `Resource#Result[A]` -- a path-dependent type because it includes
+the `Context` type member of your `Resource`. Each `Resource` function takes no arguments and returns 
+an instance of this type. The stack contains all you need to perform side-effects 
+-- via `scalaz.effect.IO`, operate on the `Resource`'s state -- via the `scalaz.State` monad and control the
+flow of the Scalamachine flow runner, such as halting execution with a specific response code 
+-- via the `scalamachie.core.Res` monad. 
+
+Lets explore this through an example. The resource we implemented in the previous section returned
+some HTML containing the text "Hello, Scalamachine" when we fetched it. Besides the mention of 
+using the given defaults it probably wasn't very clear where this came from. Two functions crucial
+in how a `GET` is rendered are `contentTypesProvided` and a function, whose name is your choice, 
+that actually "renders" the bytes of the response body. Each of these is a `Resouce#Result[A]`, 
+where `A` is the type of value returned by each function. Specifically `contentTypesProvided` is a
+a `Resource#Result[Resource#ContentTypesProvided]` -- `Resource#ContentTypesProvided` is a type
+alias for `List[(ContentType, Resource#Result[HTTPBody])]`. It is from this return type that the
+body-rendering function comes about. For each content-type provided by your API there is an associated 
+`Resource#Result[HTTPBody]`. `HTTPBody` is a type that encodes both fixed length and streaming, or
+chunked, response bodies. For now we stick to fixed length. 
+
+Lets first, simply, return our own HTML, that says "Hello, World", instead of the default "Hello, 
+Scalamachine". This will be pretty similar to how scalamachine defines its default return value. 
+
+{% highlight scala %}
+import scalamachine.core._
+import scalaz.syntax.monad._
+
+object MyFirstResource extends Resource {
+  // TODO: either explain this briefly with refernce to Resource section or use ContextFreeResource
+  type Context = Option[Nothing]
+  def init = None
+
+  override val contentTypesProvided: Result[ContentTypesProvided] = 
+    List((ContentType("text/html"),helloWorld.point[Result])).point[Result]
+
+  // implicits for String => HTTPBody and Array[Byte] => HTTPBody exist
+  private val helloWorld: HTTPBody = <html><body>Hello, World</body></html>.toString
+}
+{% endhighlight %}
+
+If you replace the `Resource` we wrote earlier with the above code and run the server you should
+see our new HTML returned when making a request. 
+
+So what exactly is going on here? The first thing that may have caught your attention is we said
+Scalamachine resources contain a collection of functions but we defined our `HTTPBody` and overrode
+`contentTypesProvided` using `val` not `def`. This is because `Resource#Result[A]` encodes the
+laziness for us. There are no named arguments for the resource's state, it is thread through 
+operations for us using `scalaz.State`. Instead the state is operated on using Lenses, specifically
+the `scalaz.Lens` implementation. As mentioned previously, I/O can also be performed inside these
+functions, again lazily, via `scalaz.effect.IO` and the processing of the `Resource` can be
+controlled via `scalamachine.core.Res`. 
+
+The rest is pretty straight forward. We define a constant return value, our HTML as an `HTTPBody`
+-- it is implicity converted from a `String`. Additionally, we override `contentTypesProvided` 
+to associate the `text/html` content-type with our new return body. The list returned in that 
+function controls which media types are provided by the `Resource`. If a media type is not provided
+for a given request, determined via the `Accept` header, a `406 Not Acceptable` is returned. In this
+case only `text/html` will be provided. In order to turn our pure `HTTPBody` value into the 
+`Resource#Result[HTTPBody]` needed by `contentTypesProvided` we lift it into the monad using 
+`point`. We do the same with the pure `List[ContentTypesProvided]` value. 
+
+The previous functions did not operate on the resource's state. How about one that does? One thing 
+we could do, although not very practical is echo the content of the request body on a `GET`. Of 
+course this is totally ridiculous because we will always return an empty response body, `GET` requests
+cannot contain a body, but its sufficient for an example.
+
+{% highlight scala %}
+import scalamachine.core._
+import ReqRespData._
+import ResT._
+import scalaz.syntax.monad._
+import scalaz.effect.IO
+
+// inside a Resource definition
+val echoBody: Result[HTTPBody] = (dataL >=> reqBodyL).lift[IO].liftM[ResT]
+{% endhighlight %}
+
+Here we use lenses for the first time to view a portion of the `Resource` state. Most important
+is the lens, `dataL`, which views the `ReqRespData` part of the state. We compose, using `>=>`, 
+that lens with `reqBodyL`, a `ReqRespData @> HTTPBody`, or specifically a lens that views the 
+request body of the `ReqRespData`. In this case we do not modify the state, we simply return
+the observed value as the `HTTPBody` we wish this `Resource` to respond with when it receives 
+an acceptable `GET` request.
+
+That's all we will look at regarding resources in this guide. Checkout the Documentation for
+more. `contentTypesProvided` and the body-rendering functions are only two of the many functions
+you can implement as part of your `Resource`s. Next we will look more at how Resoures are bound
+to different urls in the routing layer. 
 
 ## Request Routing
 
-Guards can be used to place conditions on which requests are routed to which resources based on
- headers and other details of the request.
+The other important component of your Scalamachine application is a collection of url patterns,
+we refer to as *routes*, each associated with a `Resource` that will be served when a url matches
+one of the patterns. The data structure that holds this collection is `scalamachine.core.routing.RoutingTable`. 
+If you are familiar with routing layers in other web frameworks this shouldn't be anything new. 
+If you aren't, no worries, its very straight forward. Each URL pattern is matched against the 
+incoming request until the first matching one is found. The associated resource is then run 
+through the Webmachine flow logic.
 
+The route patterns you write will primarly represent parts of the URL path. URL patterns can also 
+be matched against the hostname of the request, this is useful in the cases where your application
+is served on various domains. In this guide we will only discuss routes using path-based patterns. You
+can read the Documenation on Request Routing for more information on hostname-based patters, but
+the process is pretty similar. 
 
-# Next Steps
+The patterns are constructed from two types of parts, strings and named placeholders. When a 
+request is received Scalamachine takes the path and splits it into tokens using `/` as a delimiter. 
+Each part in the pattern is tested against the corresponding token, based on position. A string
+part matches if its value is equal, allowing for case-insensitivty, to the value of th token. A 
+named part, which is represented by the Scala `Symbol` type, always matches. If
+each part matches each token, a route matching the request has been found. Routes can be defined 
+to allow left-over tokens or can require that the number of tokens matches the number of parts 
+in the route. 
 
+So why have named route parts if they always match their corresponding token? We use named
+parts to extract the tokens that match those parts in order to refer to them easily inside 
+of our resource. `ReqRespData` contains a field `pathInfo`, a `Map[Symbol, String]`. There is
+also a corresponding `ReqRespData.pathInfoL` lens. Each named part will be a key in the map and
+the matched token will be the value. 
+
+Request routing has a few more features, some of which we have glossed over, check out the 
+next section for links to suggested reading. 
+
+<div class="well next-steps">
+  <h1 id="next_steps">Next Steps</h1>
+  <ul>
+  <li>
+  <a href="/resources.html">Resources Documenation</a> - 
+  contains a list of all resource functions as well as explanations of request paths
+  through the webmachine flow diagram for different HTTP methods. 
+  </li>  
+  <li>
+  <a href="/request-routing.html">Request Routing Documentation</a> -
+  more on request routing including guards and hostname url patterns  
+  </li>
+  <li>
+  Checkout the documentation on support for <a href="/netty.html">Netty</a> or the 
+  <a href="/javax-servlet.html">javax.servlet api</a>
+  </li>
+  </ul>
+</div>  
 
 
