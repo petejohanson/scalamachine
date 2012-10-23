@@ -1,19 +1,4 @@
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <title>Scalamachine: {{ page.title }}</title>
-    <meta name="author" content="Jordan West">
-    
-    <!-- Le HTML5 shim, for IE6-8 support of HTML elements -->
-    <!--[if lt IE 9]>
-      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
-    <![endif]-->
-
-    <link href="css/bootstrap.css" rel="stylesheet">
-    <link rel="stylesheet" href="css/pygments.css" type="text/css" />
-    <link rel="stylesheet" href="css/layout.css" type="text/css" />
-  </head>
+{% include prelude.html %}
   <body class="container-fluid intro-body" id="content">
     {% include navbar.html %}
     <div class="container-fluid introduction">
@@ -77,4 +62,4 @@
     </div>
     {% include js.html %}
   </body>
-</html>
+{% include epilogue.html %}
