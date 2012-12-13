@@ -7,7 +7,7 @@ Scalamachine is a port of [Basho's Webmachine](http://github.com/basho/webmachin
 For more info check out the [website](http://scalamachine.com)
 
 # License
-Copyright © 2012 Jordan West
+Copyright © 2012 StackMob
 
 Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at
 
