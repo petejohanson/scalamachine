@@ -112,7 +112,7 @@ class RouteSpecs extends Specification with ScalaCheck { override def is =
     }
   }
 
-  def testGuardNotCalledWhenNotDefined = forAll(nonEmptyTokens(4)) {
+  def testGuardNotCalledWhenNotDefined = forAll(nonEmptyTokens suchThat { _.size > 3}) {
     (pathParts: List[String]) => {
       val route: Route = pathMatching(pathParts.reverse.map(routeToken(_))) guardedBy { _ => throw new RuntimeException("I shouldn't be run") } serve null
       route.isDefinedAt(ReqRespData(pathParts = pathParts)) must not(throwA[RuntimeException])
@@ -423,13 +423,8 @@ class RouteSpecs extends Specification with ScalaCheck { override def is =
 
   }
 
-  def containerOfAtLeastN[C[_], T](n: Int, g: Gen[T])(implicit b: Buildable[T, C]): Gen[C[T]] = {
-    Gen.sized(size => for(n <- Gen.choose(n, size); c <- Gen.containerOfN[C, T](n, g)) yield c)
-  }
-
   val tok = for(cs <- Gen.listOf1(Gen.alphaChar)) yield cs.mkString
   val nonEmptyTokens = Gen.containerOf1[List, String](tok)
-  def nonEmptyTokens(n: Int) = containerOfAtLeastN[List, String](n, tok)
 
   // generates a nonempty token list, an index to change and a value to change that index to
   val tokensAndChangeIndexAndValue =
@@ -445,7 +440,7 @@ class RouteSpecs extends Specification with ScalaCheck { override def is =
   // generates lists of differing sizes
   val differingLists = for {
     ls1 <- nonEmptyTokens
-    ls2 <- nonEmptyTokens()
+    ls2 <- nonEmptyTokens
     shouldAdd <- Arbitrary.arbitrary[Boolean]
   } yield {
     val (baseList,changeList) = if (ls1.size > ls2.size) (ls1,ls2) else (ls2,ls1)
@@ -454,7 +449,7 @@ class RouteSpecs extends Specification with ScalaCheck { override def is =
 
   // generates a non-empty token list and a set of indexes to be intended to be used as data parts
   val tokensAndDataPartIdxs = for {
-    ls <- nonEmptyTokens(5)
+    ls <- nonEmptyTokens suchThat { _.size > 4 }
     idxs <- {
       val lsSize = ls.toSet.size
       Gen.containerOf1[Set,Int](Gen.choose(0,lsSize - 1)) suchThat { _.size < lsSize - 2 }
