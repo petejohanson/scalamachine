@@ -23,11 +23,9 @@ Any `Resource` function can either continue or halt the processing of a request 
 * `HaltRes` 
 * `ErrorRes` 
 
-`ValueRes[A]` boxes an actual value, `A`, and is similar to `Some[A]`. Depending on the returned value the processing of the request may continue or it may complete. `HaltRes` and `ErrorRes` are used to explicitly stop processing and both have type `Res[Nothing]` -- `Res[A]` is covariant*. `HaltRes` is used to stop processing with a specific response code. `ErrorRes` will always result in a  `500 Internal Server Error` and the response body with contain a specific value specified when creating an `ErrorRes`.
+`ValueRes[A]` boxes an actual value, `A`, and is similar to `Some[A]`. Depending on the returned value the processing of the request may continue or it may complete. `HaltRes` and `ErrorRes` are used to explicitly stop processing and both have type `Res[Nothing]` -- `Res[A]` is covariant. `HaltRes` is used to stop processing with a specific response code. `ErrorRes` will always result in a  `500 Internal Server Error` and the response body with contain a specific value specified when creating an `ErrorRes`.
 
-`ValueRes[A]`, `HaltRes`, and `ErrorRes` are all `case classes` so they can be instantiated using the default `apply` constructor. However it is suggested, to help the Scala type inferencer, that you import `Res._` and use the functions `result[A](a: A)`, `halt(code: Int)` and `error(e: Any)`, which have the less specific result type `Res[A]`. 
-
-***
+`ValueRes[A]`, `HaltRes`, and `ErrorRes` are all `case classes` so they can be instantiated using the default `apply` constructor. However it is suggested, to help the Scala type inferencer, that you import `Res._` and use the functions `result[A](a: A)`, `halt(code: Int)` and `error(e: Any)`, which have the less specific result type `Res[A]`.
 
 # Resource Functions
 
