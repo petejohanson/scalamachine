@@ -1,4 +1,5 @@
 import sbt._
+import org.scalastyle.sbt.ScalastylePlugin
 import com.github.siasia._
 import WebPlugin._
 import com.jsuereth.sbtsite._
@@ -55,7 +56,7 @@ object BuildSettings {
     )
   )
 
-  val standardSettings = Defaults.defaultSettings ++ Seq(
+  val standardSettings = Defaults.defaultSettings ++ ScalastylePlugin.Settings ++ Seq(
     organization := org,
     version := vsn,
     scalaVersion := scalaVsn,
@@ -82,8 +83,8 @@ object Dependencies {
   lazy val finagle        = "com.twitter"             %% "finagle-http"                 % "1.9.12"          % "compile"
   lazy val logback        = "ch.qos.logback"          % "logback-classic"               % "1.0.0"           % "compile"
 
-  lazy val specs2         = "org.specs2"              %% "specs2"                       % "1.9"             % "test"
-  lazy val scalacheck     = "org.scala-tools.testing" %% "scalacheck"                   % "1.9"             % "test"
+  lazy val specs2         = "org.specs2"              %% "specs2"                       % "1.12.1"          % "test"
+  lazy val scalacheck     = "org.scalacheck"          %% "scalacheck"                   % "1.10.0"          % "test"
   lazy val mockito        = "org.mockito"             % "mockito-all"                   % "1.9.0"           % "test"
   lazy val hamcrest       = "org.hamcrest"            % "hamcrest-all"                  % "1.1"             % "test"
   lazy val pegdown        = "org.pegdown"             % "pegdown"                       % "1.0.2"           % "test"
