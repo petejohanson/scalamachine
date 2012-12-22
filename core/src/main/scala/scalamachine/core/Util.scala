@@ -101,20 +101,20 @@ class AcceptHeaderParser extends JavaTokenParsers {
 
   protected def acceptCharset: Parser[(String,Double)] = """[^,;]+""".r ~ opt(qParam) ^^ { case h~t => (h,t.getOrElse(1.0)) }
 
-  protected def qParam: Parser[Double] = ";q=" ~> floatingPointNumber ^^ {
+  protected def qParam: Parser[Double] = """\s*;\s*q\s*=\s*""".r ~> floatingPointNumber ^^ {
     v => {
       val value = v.toDouble
       if (value < 0) 0.0
       else if (value > 1) 1.0
       else value
-    } 
+    }
   }
 
   protected def crappyMediaRange: Parser[ContentType] = literal("*") ^^^ ContentType("*")
 
   protected def mediaRange: Parser[ContentType] = (mediaType ~ rep(params)) ^^ { case mtype~args => ContentType(mtype,Map(args:_*)) }
 
-  protected def params: Parser[(String,String)] = ((";" ~> not("q=")) ~> """[^\s=]+""".r) ~ ("=" ~> """[^,;]+""".r) ^^ { case head~tail => (head,tail) }
+  protected def params: Parser[(String,String)] = ((";" ~> not("""\s*q\s*=""".r)) ~> """[^\s=]+""".r) ~ ("=" ~> """[^,;]+""".r) ^^ { case head~tail => (head,tail) }
 
   protected def mediaType: Parser[String] = """\*/\*""".r | subTypeAll | fullType
 
