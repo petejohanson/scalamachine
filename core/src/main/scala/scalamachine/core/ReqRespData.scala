@@ -14,16 +14,16 @@ case class Request(method: HTTPMethod,
                    pathParts: PathParts,
                    queryString: Query,
                    body: HTTPBody) extends HasHeaders {
-  def acceptHeader = headers.find(_ == HTTPHeaders.Accept)
+  def acceptHeader: Option[String] = headers.find(_ == HTTPHeaders.Accept).map(_._2)
 }
 
 case class Response(code: ResponseCode,
-                    override val headers: Headers,
-                    body: HTTPBody) extends HasHeaders {
-  def contentType(cType: String) = {
+                    override val headers: Headers = EmptyHeaders,
+                    body: HTTPBody = HTTPBody.Empty) extends HasHeaders {
+  def withContentType(cType: String): Response = {
     this.copy(headers = headers ++ Map(HTTPHeaders.ContentTypeHeader -> cType))
   }
-  def contentType = headers.find(_._1 == HTTPHeaders.ContentTypeHeader).map(_._2)
+  def contentType: Option[String] = headers.find(_._1 == HTTPHeaders.ContentTypeHeader).map(_._2)
 }
 
 
