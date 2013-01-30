@@ -5,6 +5,28 @@ import scalamachine.internal.scalaz.@>
 import HTTPMethods._
 import ReqRespData.{HostData,PathData,Metadata}
 
+sealed trait HasHeaders {
+  def headers: Headers
+}
+
+case class Request(method: HTTPMethod,
+                   override val headers: Headers,
+                   pathParts: PathParts,
+                   queryString: Query,
+                   body: HTTPBody) extends HasHeaders {
+  def acceptHeader = headers.find(_ == HTTPHeaders.Accept)
+}
+
+case class Response(code: ResponseCode,
+                    override val headers: Headers,
+                    body: HTTPBody) extends HasHeaders {
+  def contentType(cType: String) = {
+    this.copy(headers = headers ++ Map(HTTPHeaders.ContentTypeHeader -> cType))
+  }
+  def contentType = headers.find(_._1 == HTTPHeaders.ContentTypeHeader).map(_._2)
+}
+
+
 /**
  * Represents the request being sent by the client as well as the response built by the resource
  *
@@ -108,6 +130,53 @@ object ReqRespData {
 
   case class HostData(tokens: Seq[String] = Nil, info: Map[Symbol,String] = Map()) {
     val dispSubdomain = tokens.mkString(".")
+  }
+
+
+  /**
+   * type class for converting a T into a ReqRespData
+   * @tparam T a HasHeaders to be converted into a ReqRespData
+   */
+  trait AsReqRespData[T <: HasHeaders] {
+    def toReqRespData(existing: ReqRespData, t: T): ReqRespData
+  }
+
+  /**
+   * type class for converting a ReqRespData into a T
+   * @tparam T a HasHeaders to be converted into a ReqRespData
+   */
+  trait FromReqRespData[T <: HasHeaders] {
+    def fromReqRespData(existing: ReqRespData): T
+  }
+
+  /**
+   * a type class for converting HasHeaders <---> ReqRespData
+   * @tparam T the HasHeaders to convert to/from
+   */
+  trait ConvertReqRespData[T <: HasHeaders] extends AsReqRespData[T] with FromReqRespData[T]
+
+  implicit val requestConvertReqRespData = new ConvertReqRespData[Request] {
+    override def toReqRespData(existing: ReqRespData, req: Request): ReqRespData = existing.copy(method = req.method,
+      requestHeaders = req.headers,
+      pathParts = req.pathParts,
+      query = req.queryString,
+      requestBody = req.body)
+
+    override def fromReqRespData(existing: ReqRespData): Request = Request(existing.method,
+      existing.requestHeaders,
+      existing.pathParts,
+      existing.query,
+      existing.requestBody)
+  }
+
+  implicit val responseConvertReqRespData = new ConvertReqRespData[Response] {
+    override def toReqRespData(existing: ReqRespData, resp: Response): ReqRespData = existing.copy(statusCode = resp.code,
+      responseHeaders = resp.headers,
+      responseBody = resp.body)
+
+    override def fromReqRespData(existing: ReqRespData): Response = Response(existing.statusCode,
+      existing.responseHeaders,
+      existing.responseBody)
   }
 }
 
