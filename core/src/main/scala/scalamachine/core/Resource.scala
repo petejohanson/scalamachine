@@ -2,6 +2,7 @@ package scalamachine.core
 
 import java.util.Date
 import HTTPMethods._
+import scalamachine.core._
 
 /**
  * Resources represent HTTP resources in an application's API.
@@ -11,7 +12,6 @@ import HTTPMethods._
  */
 trait Resource {
   import Resource._
-  import Res._
   type MbResponse = Option[Response]
   private val NoResponse = Option.empty[Response]
 

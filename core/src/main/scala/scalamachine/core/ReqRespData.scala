@@ -26,6 +26,14 @@ case class Response(code: ResponseCode,
   def contentType: Option[String] = headers.find(_._1 == HTTPHeaders.ContentTypeHeader).map(_._2)
 }
 
+case class Halt(code: Option[ResponseCode], body: Option[HTTPBody])
+
+object Halt {
+  def apply(code: ResponseCode, body: HTTPBody): Halt = Halt(Some(code), Some(body))
+  def apply(code: ResponseCode): Halt = Halt(Some(code), None)
+  def apply(): Halt = Halt(None, None)
+}
+
 
 /**
  * Represents the request being sent by the client as well as the response built by the resource

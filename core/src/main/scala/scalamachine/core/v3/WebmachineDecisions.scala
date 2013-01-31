@@ -10,13 +10,10 @@ import scalamachine.internal.scalaz.syntax.order._
 import scalamachine.internal.scalaz.syntax.monad._
 import scalamachine.internal.scalaz.OptionT._
 import scalamachine.internal.scalaz.Lens._
-import scalamachine.internal.scalaz.State
-import scalamachine.internal.scalaz.Id
+import internal.scalaz.{ValidationT, State, Id}
 import internal.ext._
 import Decision.FlowState
-import Res._
-import scalamachine.core.{ResTransformer => ResT}
-import ResTransformer._
+import scalamachine.core._
 import ReqRespData._
 import Metadata._
 import Resource._
@@ -26,7 +23,7 @@ import HTTPMethods._
 
 trait WebmachineDecisions {
 
-  type ResTFlow[X] = ResT[FlowState,X]
+  type ResTFlow[X] = ValidationT[FlowState, Halt, X]
 
   /* Service Available? */
   lazy val b13: Decision = Decision("v3b13", true, (r: Resource) => r.serviceAvailable(_: ReqRespData), b12, 503)

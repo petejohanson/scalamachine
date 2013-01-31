@@ -1,8 +1,9 @@
 package scalamachine.core
 package flow
 
-import scalamachine.internal.scalaz.State
+import scalamachine.internal.scalaz.{Success, Failure, State}
 import scalamachine.internal.scalaz.syntax.monad._
+import scalamachine.core._
 
 
 trait Decision {
@@ -15,8 +16,7 @@ trait Decision {
     for {
       res <- decide(resource)
       _ <- res match {
-        case HaltRes(code, body) => setError(code, body)
-        case ErrorRes(error) => setError(500, Option(error))
+        case Failure(Halt(Some(code), body)) => setError(code, body)
         case _ => ().point[FlowState]
       }
     } yield res.toOption
@@ -42,8 +42,6 @@ trait Decision {
 
 object Decision {
   import ReqRespData.statusCodeL
-  import Res._
-  import ResTransformer._
   import scalamachine.internal.scalaz.syntax.pointed._
 
   type FlowState[T] = State[ReqRespData, T]
