@@ -159,7 +159,7 @@ trait ResInternalInstances {
   implicit val resScalazInternalInstances = new Traverse[Res] with Monad[Res] {
     def point[A](a: => A): Res[A] = ValueRes(a)
     def traverseImpl[G[_],A,B](fa: Res[A])(f: A => G[B])(implicit G: Applicative[G]): G[Res[B]] =
-      map(fa)(a => G.map(f(a))(ValueRes(_): Res[B])) match {
+      map(fa)(a => G.map(f(a))(b => ValueRes(b): Res[B])) match {
         case ValueRes(r) => r
         case HaltRes(c, b) => G.point(HaltRes(c,b))
         case ErrorRes(e) => G.point(ErrorRes(e))
@@ -195,7 +195,7 @@ object ResTransformer extends ResTransformerFunctions with ResTransformerInstanc
 
 trait ResTransformerFunctions {
   import scalamachine.internal.scalaz.~>
-  def resT[M[_]] = new (({type λ[α] = M[Res[α]]})#λ ~> ({type λ[α] = ResTransformer[M, α]})#λ) {
+  def resT[M[_]] = new (({type N[U] = M[Res[U]]})#N ~> ({type N[U] = ResTransformer[M, U]})#N) {
     def apply[A](a: M[Res[A]]) = ResTransformer[M, A](a)
   }
 }
