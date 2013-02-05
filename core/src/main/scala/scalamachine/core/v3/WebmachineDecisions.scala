@@ -28,16 +28,13 @@ import ReqRespData.{requestConvertReqRespData, responseConvertReqRespData}
 trait WebmachineDecisions {
 
   type ResTFlow[X] = ResT[FlowState,X]
-
-
-  type ReqRespDataFn[T] = ReqRespData => (ReqRespData, Res[T])
+  private type ReqRespDataFn[T] = ReqRespData => (ReqRespData, Res[T])
 
   private def converter1[T](fn: Request => Res[T]): ReqRespDataFn[T] = { data: ReqRespData =>
     val request = requestConvertReqRespData.fromReqRespData(data)
     val res = fn(request)
     data -> res
   }
-
   private def converter2[T](fn: Request => (Option[Response], Res[T])): ReqRespDataFn[T] = { data: ReqRespData =>
     val request = requestConvertReqRespData.fromReqRespData(data)
     val (mbResponse, res) = fn(request)
