@@ -23,31 +23,50 @@ import Resource._
 import java.util.Date
 import HTTPHeaders._
 import HTTPMethods._
+import ReqRespData.{requestConvertReqRespData, responseConvertReqRespData}
 
 trait WebmachineDecisions {
 
   type ResTFlow[X] = ResT[FlowState,X]
 
+
+  type ReqRespDataFn[T] = ReqRespData => (ReqRespData, Res[T])
+
+  private def converter1[T](fn: Request => Res[T]): ReqRespDataFn[T] = { data: ReqRespData =>
+    val request = requestConvertReqRespData.fromReqRespData(data)
+    val res = fn(request)
+    data -> res
+  }
+
+  private def converter2[T](fn: Request => (Option[Response], Res[T])): ReqRespDataFn[T] = { data: ReqRespData =>
+    val request = requestConvertReqRespData.fromReqRespData(data)
+    val (mbResponse, res) = fn(request)
+    val newReqRespData = mbResponse.map { response: Response =>
+      responseConvertReqRespData.toReqRespData(data, response)
+    }.getOrElse(data)
+    newReqRespData -> res
+  }
+
   /* Service Available? */
-  lazy val b13: Decision = Decision("v3b13", true, (r: Resource) => r.serviceAvailable(_: ReqRespData), b12, 503)
+  lazy val b13: Decision = Decision("v3b13", true, (r: Resource) => converter1(r.serviceAvailable(_)), b12, 503)
 
   /* Known Methods */
   lazy val b12: Decision = 
     Decision(
       "v3b12", 
-      (r: Resource) => r.knownMethods(_: ReqRespData), 
+      (r: Resource) => converter1(r.knownMethods(_)),
       (l: List[HTTPMethod], d: ReqRespData) => l.contains(d.method), 
       b11, 
       501)
 
   /* URI Too Long? */
-  lazy val b11: Decision = Decision("v3b11", true, (r: Resource) => r.uriTooLong(_: ReqRespData), 414, b10)
+  lazy val b11: Decision = Decision("v3b11", true, (r: Resource) => converter1(r.uriTooLong(_)), 414, b10)
 
   /* Allowed Methods */
   lazy val b10: Decision =
     Decision(
       "v3b10",
-      (r: Resource) => r.allowedMethods(_: ReqRespData),
+      (r: Resource) => converter1(r.allowedMethods(_)),
       (l: List[HTTPMethod], d: ReqRespData) => l.contains(d.method),
       b9,
       (r: List[HTTPMethod]) => for {
@@ -57,13 +76,13 @@ trait WebmachineDecisions {
     )
 
   /* Malformed Request? */
-  lazy val b9: Decision = Decision("v3b9", true, (r: Resource) => r.isMalformed(_: ReqRespData), 400, b8)
+  lazy val b9: Decision = Decision("v3b9", true, (r: Resource) => converter2(r.isMalformed(_)), 400, b8)
 
   /* Is Authorized? */
   lazy val b8: Decision = Decision(
     "v3b8",
     AuthSuccess,
-    (r: Resource) => r.isAuthorized(_: ReqRespData),
+    (r: Resource) => converter2(req => r.isAuthorized(req)),
     b7,
     (r: AuthResult) => for {
       _ <- r.fold(
@@ -75,16 +94,16 @@ trait WebmachineDecisions {
   )
 
   /* Is Forbidden? */
-  lazy val b7: Decision = Decision("v3b7", true, (r: Resource) => r.isForbidden(_: ReqRespData), 403, b6)
+  lazy val b7: Decision = Decision("v3b7", true, (r: Resource) => converter2(r.isForbidden(_)), 403, b6)
 
   /* Content-* Headers Are Valid? */
-  lazy val b6: Decision = Decision("v3b6", true, (r: Resource) => r.contentHeadersValid(_: ReqRespData), b5, 501)
+  lazy val b6: Decision = Decision("v3b6", true, (r: Resource) => converter2(r.contentHeadersValid(_)), b5, 501)
 
   /* Is Known Content-Type? */
-  lazy val b5: Decision = Decision("v3b5", true, (r: Resource) => r.isKnownContentType(_: ReqRespData), b4, 415)
+  lazy val b5: Decision = Decision("v3b5", true, (r: Resource) => converter2(r.isKnownContentType(_)), b4, 415)
 
   /* Request Entity Too Large? */
-  lazy val b4: Decision = Decision("v3b4", true, (r: Resource) => r.isValidEntityLength(_: ReqRespData), b3, 413)
+  lazy val b4: Decision = Decision("v3b4", true, (r: Resource) => converter2(r.isValidEntityLength(_)), b3, 413)
 
   /* OPTIONS? */
   lazy val b3: Decision = new Decision {
@@ -158,7 +177,7 @@ trait WebmachineDecisions {
   }
 
   /* Acceptable Language Available? */
-  lazy val d5: Decision = Decision("v3d5", true, (r: Resource) => r.isLanguageAvailable(_: ReqRespData), e5, 406)
+  lazy val d5: Decision = Decision("v3d5", true, (r: Resource) => converter1(r.isLanguageAvailable(_)), e5, 406)
 
   /* Accept-Charset Exists? */
   lazy val e5: Decision = new Decision {
@@ -278,7 +297,7 @@ trait WebmachineDecisions {
   lazy val g11: Decision =
     Decision(
       "v3g11",
-      (r: Resource) => r.generateEtag(_: ReqRespData),
+      (r: Resource) => converter1(r.generateEtag(_)),
       (etag: Option[String], d: ReqRespData) => (for {
         e <- optionT[FlowState](etag.point[FlowState])
         matches <- optionT[FlowState]((requestHeadersL member IfMatch))
@@ -324,7 +343,7 @@ trait WebmachineDecisions {
   lazy val i4: Decision =
     Decision(
       "v3i4",
-      (r: Resource) => r.movedPermanently(_: ReqRespData),
+      (r: Resource) => converter1(r.movedPermanently(_)),
       (l: Option[String], _: ReqRespData) => !l.isDefined,
       p3,
       (location: Option[String]) => for {
@@ -368,7 +387,7 @@ trait WebmachineDecisions {
   /* Resource Moved Permanently? (not PUT request) */
   lazy val k5: Decision = Decision(
     "v3k5",
-    (r: Resource) => r.movedPermanently(_: ReqRespData),
+    (r: Resource) => converter1(r.movedPermanently(_)),
     (l: Option[String], _: ReqRespData) => !l.isDefined,
     l5,
     (location: Option[String]) => for {
@@ -378,12 +397,12 @@ trait WebmachineDecisions {
   )
 
   /* Resource Existed Previously ? */
-  lazy val k7: Decision = Decision("v3k7", true, (r: Resource) => r.previouslyExisted(_: ReqRespData), k5, l7)
+  lazy val k7: Decision = Decision("v3k7", true, (r: Resource) => converter1(r.previouslyExisted(_)), k5, l7)
 
   lazy val k13: Decision =
     Decision(
       "v3k13",
-      (r: Resource) => r.generateEtag(_: ReqRespData),
+      (r: Resource) => converter1(r.generateEtag(_)),
       (etag: Option[String], d: ReqRespData) => (for {
         e <- optionT[FlowState](etag.point[FlowState])
         matches <- optionT[FlowState]((requestHeadersL member IfNoneMatch))
@@ -395,7 +414,7 @@ trait WebmachineDecisions {
   /* Moved Temporarily? */
   lazy val l5: Decision = Decision(
     "v3l5",
-    (r: Resource) => r.movedTemporarily(_: ReqRespData),
+    (r: Resource) => converter1(r.movedTemporarily(_)),
     (l: Option[String], _: ReqRespData) => !l.isDefined,
     m5,
     (location: Option[String]) => for {
@@ -461,7 +480,7 @@ trait WebmachineDecisions {
     Decision(
       "v3m7",
       true,
-      (r: Resource) => r.allowMissingPost(_: ReqRespData),
+      (r: Resource) => converter1(r.allowMissingPost(_)),
       n11,
       404
     )
@@ -479,7 +498,7 @@ trait WebmachineDecisions {
     Decision(
       "v3m20",
       true,
-      (r: Resource) => r.deleteResource(_: ReqRespData),
+      (r: Resource) => converter2(r.deleteResource(_)),
       m20b,
       500
     )
@@ -489,7 +508,7 @@ trait WebmachineDecisions {
     Decision(
       "v3m20b",
       true,
-      (r: Resource) => r.deleteCompleted(_: ReqRespData),
+      (r: Resource) => converter2(r.deleteCompleted(_)),
       o20,
       202
     )
@@ -499,7 +518,7 @@ trait WebmachineDecisions {
     Decision(
       "v3n5",
       true,
-      (r: Resource) => r.allowMissingPost(_: ReqRespData),
+      (r: Resource) => converter1(r.allowMissingPost(_)),
       n11,
       410
     )
@@ -544,12 +563,13 @@ trait WebmachineDecisions {
         _ <- if (postIsCreate) createPath else processPost
         doRedirect <- doRedirectL.st.liftM[ResT]
         mbLoc <- (responseHeadersL member Location).st.liftM[ResT]
-        decision <-
+        decision <- {
           if (doRedirect)
             mbLoc
               .map(_ => resT[FlowState](halt[Decision](303).point[FlowState]))
               .getOrElse(resT[FlowState](error[Decision]("redirect with no location").point[FlowState]))
           else p11.point[ResTFlow]
+        }
       } yield decision
 
       act.run
@@ -598,7 +618,7 @@ trait WebmachineDecisions {
         else default.point[ResTFlow]
 
       def setHeader(header: HTTPHeader, value: Option[String]): ResT[FlowState,Option[String]] =
-        ((responseHeadersL member header) := value).liftM[ResT]
+        ((responseHeadersL.member(header)) := value).liftM[ResT]
 
       val setBody = for {
       // find content providing function given chosen content type and produce body, setting it in the response
