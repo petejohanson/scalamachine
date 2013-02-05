@@ -211,8 +211,7 @@ sealed trait HTTPHeader {
 }
 
 object HTTPHeader {
-  def fromString(s: String): Option[HTTPHeader] = Option(apply(s.toLowerCase))
-  def unapply(s: String): Option[HTTPHeader] = fromString(s)
+  def fromString(s: String): HTTPHeader = apply(s.toLowerCase)
   def apply(lowercase: String) = new HTTPHeader {
     override lazy val lowercaseName = lowercase
   }

@@ -22,7 +22,7 @@ trait LiftWebmachine {
       requestHeaders = {
         for {
           (name, value) <- req.headers.toMap
-          hdr <- HTTPHeader.fromString(name)
+          hdr <- Option(HTTPHeader.fromString(name))
         } yield (hdr,value)
 
       }
