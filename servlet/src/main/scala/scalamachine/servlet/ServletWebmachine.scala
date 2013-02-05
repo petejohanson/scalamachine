@@ -30,14 +30,7 @@ trait ServletWebmachine[M[_]] {
 
   private def requestHeaders(req: HttpServletRequest): Map[HTTPHeader, String] = {
     val names = req.getHeaderNames.asScala.collect { case s: String => s }
-    names.foldLeft(Map[HTTPHeader, String]()) { (map, headerName) =>
-      Option(req.getHeader(headerName)).map { hdrVal =>
-        val header = HTTPHeader(headerName)
-        map ++ Map(header -> hdrVal)
-      }.getOrElse {
-        map
-      }
-    }
+    names.flatMap { (headerName) => Option(req.getHeader(headerName)).map((HTTPHeader(headerName), _)) }.toMap
   }
 
   private def queryString(uri: URI): Map[String, List[String]] = {
