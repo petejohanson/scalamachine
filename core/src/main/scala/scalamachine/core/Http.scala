@@ -211,21 +211,16 @@ sealed trait HTTPHeader {
 }
 
 object HTTPHeader {
-  def fromString(s: String): Option[HTTPHeader] = HTTPHeaders.knownHeaders.find(_.lowercaseName == s.toLowerCase)
+  def fromString(s: String): Option[HTTPHeader] = Option(apply(s.toLowerCase))
   def unapply(s: String): Option[HTTPHeader] = fromString(s)
+  def apply(lowercase: String) = new HTTPHeader {
+    override lazy val lowercaseName = lowercase
+  }
 }
 
 object HTTPHeaders {
 
-  private[scalamachine] var knownHeaders: Seq[HTTPHeader] = List()
-
-  def createHeader(name: String): HTTPHeader = {
-    val header = new HTTPHeader {
-      def lowercaseName: String = name.toLowerCase
-    }
-    knownHeaders = header +: knownHeaders
-    header
-  }
+  def createHeader(name: String) = HTTPHeader(name)
 
   val Accept               = createHeader("accept")
   val AcceptCharset        = createHeader("accept-charset")
