@@ -63,7 +63,7 @@ object Decision {
         value <- resT[FlowState](State((d: ReqRespData) => test(resource)(d)))
         handler <- resT[FlowState](State((d: ReqRespData) => if (check(value, d)) (d, result(onSuccess)) else (d, result(onFailure))))
         next <- resT[FlowState](handler match {
-          case Left(f) => f(value) >| empty[Decision]
+          case Left(f) => f(value).map(_ => empty[Decision])
           case Right(decision) => result(decision).point[FlowState]
         })
       } yield next
