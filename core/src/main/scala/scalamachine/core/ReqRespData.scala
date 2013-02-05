@@ -104,24 +104,24 @@ case class ReqRespData(baseUri: String = "",
 }
 
 object ReqRespData {
-  private[core] val baseUriL: ReqRespData @> String = lensg(d => u => d copy (baseUri = u), _.baseUri)
-  private[core] val statusCodeL: ReqRespData @> Int = lensg(d => c => d copy (statusCode = c), _.statusCode)
-  private[core] val responseHeadersL: ReqRespData @> Map[HTTPHeader, String] = lensg(d => hdrs => d copy (responseHeaders = hdrs), _.responseHeaders)
-  private[core] val requestHeadersL: ReqRespData @> Map[HTTPHeader, String] = lensg(d => hdrs => d copy (requestHeaders = hdrs), _.requestHeaders)
-  private[core] val metadataL: ReqRespData @> Metadata = lensg(d => meta => d copy (metadata = meta), _.metadata)
-  private[core] val methodL: ReqRespData @> HTTPMethod = lensg(d => m => d copy (method = m), _.method)
-  private[core] val respBodyL: ReqRespData @> HTTPBody = lensg(d => b => d copy (responseBody = b), _.responseBody)
-  private[core] val pathDataL: ReqRespData @> PathData = lensg(d => pd => d copy (pathData = pd), _.pathData)
-  private[core] val pathL: ReqRespData @> String = lensg(d => p => d copy (pathParts = p.split("/").toList), _.path)
-  private[core] val dispPathL: ReqRespData @> String = lensg(d => dp => d copy (pathData = d.pathData.copy(tokens = dp.split("/"))), _.dispPath)
-  private[core] val doRedirectL: ReqRespData @> Boolean = lensg(d => b => d copy (doRedirect = b), _.doRedirect)
+  private[core] val baseUriL: ReqRespData @> String = lensg(d => u => d.copy(baseUri = u), _.baseUri)
+  private[core] val statusCodeL: ReqRespData @> Int = lensg(d => c => d.copy(statusCode = c), _.statusCode)
+  private[core] val responseHeadersL: ReqRespData @> Map[HTTPHeader, String] = lensg(d => hdrs => d.copy(responseHeaders = hdrs), _.responseHeaders)
+  private[core] val requestHeadersL: ReqRespData @> Map[HTTPHeader, String] = lensg(d => hdrs => d.copy(requestHeaders = hdrs), _.requestHeaders)
+  private[core] val metadataL: ReqRespData @> Metadata = lensg(d => meta => d.copy(metadata = meta), _.metadata)
+  private[core] val methodL: ReqRespData @> HTTPMethod = lensg(d => m => d.copy(method = m), _.method)
+  private[core] val respBodyL: ReqRespData @> HTTPBody = lensg(d => b => d.copy(responseBody = b), _.responseBody)
+  private[core] val pathDataL: ReqRespData @> PathData = lensg(d => pd => d.copy(pathData = pd), _.pathData)
+  private[core] val pathL: ReqRespData @> String = lensg(d => p => d.copy(pathParts = p.split("/").toList), _.path)
+  private[core] val dispPathL: ReqRespData @> String = lensg(d => dp => d.copy(pathData = d.pathData.copy(tokens = dp.split("/"))), _.dispPath)
+  private[core] val doRedirectL: ReqRespData @> Boolean = lensg(d => b => d.copy(doRedirect = b), _.doRedirect)
 
   case class Metadata(contentType: Option[ContentType] = None, chosenCharset: Option[String] = None, chosenEncoding: Option[String] = None)
 
   object Metadata {
-    private[core] val contentTypeL: Metadata @> Option[ContentType] = lensg(m => ct => m copy (contentType = ct), _.contentType)
-    private[core] val chosenCharsetL: Metadata @> Option[String] = lensg(m => cc => m copy (chosenCharset = cc), _.chosenCharset)
-    private[core] val chosenEncodingL: Metadata @> Option[String] = lensg(m => enc => m copy (chosenEncoding = enc), _.chosenEncoding)
+    private[core] val contentTypeL: Metadata @> Option[ContentType] = lensg(m => ct => m.copy (contentType = ct), _.contentType)
+    private[core] val chosenCharsetL: Metadata @> Option[String] = lensg(m => cc => m.copy(chosenCharset = cc), _.chosenCharset)
+    private[core] val chosenEncodingL: Metadata @> Option[String] = lensg(m => enc => m.copy(chosenEncoding = enc), _.chosenEncoding)
   }
 
   case class PathData(tokens: Seq[String] = Nil, info: Map[Symbol,String] = Map()) {
