@@ -1,15 +1,9 @@
 package scalamachine.core.tests
 
 import org.specs2._
-import matcher.MatchResult
 import mock._
-import org.mockito.{Matchers => MM}
 import scalamachine.core._
-import Resource._
-import flow._
 import v3.WebmachineDecisions
-import scalamachine.internal.scalaz.NonEmptyList
-import org.apache.commons.httpclient.util.DateUtil
 import HTTPHeaders._
 import HTTPMethods._
 
@@ -129,86 +123,86 @@ class V3ColBSpecs extends Specification with Mockito with SpecsHelper with Webma
   }
 
   def testMalformedFalse = {
-    testDecisionReturnsDecision(b9, b8, _.isMalformed(any) answers mkAnswer(false))
+    testDecisionReturnsDecision(b9, b8, _.isMalformed(any) returns mkMbAnswer(false))
   }
 
   def testMalformedTrue = {
-    testDecisionReturnsData(b9,_.isMalformed(any) answers mkAnswer(true)) {
+    testDecisionReturnsData(b9,_.isMalformed(any) returns mkMbAnswer(true)) {
       _.statusCode must beEqualTo(400)
     }
   }
 
   def testAuthTrue = {
-    testDecisionReturnsDecision(b8, b7, _.isAuthorized(any) answers mkAnswer(AuthSuccess))
+    testDecisionReturnsDecision(b8, b7, _.isAuthorized(any) returns mkMbAnswer(AuthSuccess))
   }
 
   def testAuthFalseRespCode = {
-    testDecisionReturnsData(b8,_.isAuthorized(any) answers mkAnswer(AuthFailure("something"))) {
+    testDecisionReturnsData(b8,_.isAuthorized(any) returns mkMbAnswer(AuthFailure("something"))) {
       _.statusCode must beEqualTo(401)
     }
   }
 
   def testAuthFalseHaltResult = {
-    testDecisionReturnsData(b8, _.isAuthorized(any) answers mkResAnswer(HaltRes(500))) {
+    testDecisionReturnsData(b8, _.isAuthorized(any) returns mkMbResAnswer(HaltRes(500))) {
       _.responseHeader(WWWAuthenticate) must beNone
     }
   }
 
   def testAuthFalseErrorResult = {
-    testDecisionReturnsData(b8, _.isAuthorized(any) answers mkResAnswer(ErrorRes(""))) {
+    testDecisionReturnsData(b8, _.isAuthorized(any) returns mkMbResAnswer(ErrorRes(""))) {
       _.responseHeader(WWWAuthenticate) must beNone
     }
   }
 
   def testAuthFalseAuthHeader = {
     val headerValue = "somevalue"
-    testDecisionReturnsData(b8, _.isAuthorized(any) answers mkAnswer(AuthFailure(headerValue))) {
+    testDecisionReturnsData(b8, _.isAuthorized(any) returns mkMbAnswer(AuthFailure(headerValue))) {
       _.responseHeader(WWWAuthenticate) must beSome.which { _ == headerValue }
     }
   }
 
   def testForbiddenFalse = {
-    testDecisionReturnsDecision(b7,b6,_.isForbidden(any) answers mkAnswer(false))
+    testDecisionReturnsDecision(b7,b6,_.isForbidden(any) returns mkMbAnswer(false))
   }
 
   def testForbiddenTrue = {
-    testDecisionReturnsData(b7,_.isForbidden(any) answers mkAnswer(true)) {
+    testDecisionReturnsData(b7,_.isForbidden(any) returns mkMbAnswer(true)) {
       _.statusCode must beEqualTo(403)
     }
   }
 
   def testValidContentHeadersTrue = {
-    testDecisionReturnsDecision(b6,b5,_.contentHeadersValid(any) answers mkAnswer(true))
+    testDecisionReturnsDecision(b6,b5,_.contentHeadersValid(any) returns mkMbAnswer(true))
   }
 
   def testValidContentHeadersFalse = {
-    testDecisionReturnsData(b6,_.contentHeadersValid(any) answers mkAnswer(false)) {
+    testDecisionReturnsData(b6,_.contentHeadersValid(any) returns mkMbAnswer(false)) {
       _.statusCode must beEqualTo(501)
     }
   }
 
   def testKnownContentTypeTrue = {
-    testDecisionReturnsDecision(b5,b4,_.isKnownContentType(any) answers mkAnswer(true))
+    testDecisionReturnsDecision(b5,b4,_.isKnownContentType(any) returns mkMbAnswer(true))
   }
 
   def testKnownContentTypeFalse = {
-    testDecisionReturnsData(b5,_.isKnownContentType(any) answers mkAnswer(false)) {
+    testDecisionReturnsData(b5,_.isKnownContentType(any) returns mkMbAnswer(false)) {
       _.statusCode must beEqualTo(415)
     }
   }
 
   def testIsValidEntityLengthTrue = {
-    testDecisionReturnsDecision(b4,b3,_.isValidEntityLength(any) answers mkAnswer(true))
+    testDecisionReturnsDecision(b4,b3,_.isValidEntityLength(any) returns mkMbAnswer(true))
   }
 
   def testIsValidEntityLengthFalse = {
-    testDecisionReturnsData(b4,_.isValidEntityLength(any) answers mkAnswer(false)) {
+    testDecisionReturnsData(b4,_.isValidEntityLength(any) returns mkMbAnswer(false)) {
       _.statusCode must beEqualTo(413)
     }
   }
 
   def testRequestIsOptions = {
-    testDecisionReturnsData(b3,_.options(any) answers mkAnswer(Map[HTTPHeader,String]()), data = createData(method=OPTIONS)) {
+    testDecisionReturnsData(b3,_.options(any) returns mkMbAnswer(Map[HTTPHeader,String]()), data = createData(method=OPTIONS)) {
       _.statusCode must beEqualTo(200)
     }
   }
@@ -217,7 +211,7 @@ class V3ColBSpecs extends Specification with Mockito with SpecsHelper with Webma
     val XA = createHeader("X-A")
     val XB = createHeader("X-B")
     val testHeaders =  Map(XA -> "a", XB -> "b")
-    testDecisionReturnsData(b3,_.options(any) answers mkAnswer(testHeaders), data = createData(method=OPTIONS)) {
+    testDecisionReturnsData(b3,_.options(any) returns mkMbAnswer(testHeaders), data = createData(method=OPTIONS)) {
       _.responseHeaders must containAllOf(testHeaders.toList)
     }
   }

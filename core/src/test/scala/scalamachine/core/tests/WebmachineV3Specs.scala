@@ -2,7 +2,6 @@ package scalamachine.core.tests
 
 import org.specs2._
 import mock._
-import org.mockito.{Matchers => MM}
 import scalamachine.core._
 import Resource._
 import flow._
@@ -231,7 +230,7 @@ class WebmachineV3Specs extends Specification with Mockito with SpecsHelper with
     val setBody: String = "body1"
     val charsetBody: String = "charsetBody"
     val encBody: String = "encbody"
-    val ctypes: ContentTypesProvided = List(contentTypeProvided(ContentType("text/plain"), defaultResp, result(FixedLengthBody(setBody.getBytes))))
+    val ctypes: ContentTypesProvided = List(contentTypeProvided(ContentType("text/plain"), defaultResp, result(HTTPBody(setBody.getBytes))))
     val charsets: CharsetsProvided = Some(("ch1", ((_: Array[Byte]) ++ charsetBody.getBytes)) :: Nil)
     val encodings: EncodingsProvided = Some(("enc1", ((_: Array[Byte]) ++ encBody.getBytes)) :: Nil)
     testDecisionResultHasData(
@@ -304,17 +303,17 @@ class WebmachineV3Specs extends Specification with Mockito with SpecsHelper with
 
   def testO18ExpiresExists = {
     val expires = new Date(System.currentTimeMillis)
-    val ctypes: ContentTypesProvided = (ContentType("text/plain"), (d: ReqRespData) => ((d,result(HTTPBody.Empty)))) :: Nil
+    val ctypes: ContentTypesProvided = List(contentTypeProvided(ContentType("text/plain"), defaultResp, result(HTTPBody.Empty)))
     testDecisionResultHasData(
       o18,
       r => {
-        r.generateEtag(any) answers mkAnswer(None)
-        r.lastModified(any) answers mkAnswer(None)
-        r.expires(any) answers mkAnswer(Some(expires))
-        r.contentTypesProvided(any) answers mkAnswer(ctypes)
-        r.charsetsProvided(any) answers mkAnswer(None)
-        r.encodingsProvided(any) answers mkAnswer(None)
-        r.multipleChoices(any) answers mkAnswer(false)
+        r.generateEtag(any) returns ValueRes(None)
+        r.lastModified(any) returns ValueRes(None)
+        r.expires(any) returns ValueRes(Some(expires))
+        r.contentTypesProvided(any) returns mkMbAnswer(ctypes)
+        r.charsetsProvided(any) returns ValueRes(None)
+        r.encodingsProvided(any) returns ValueRes(None)
+        r.multipleChoices(any) returns mkMbAnswer(false)
       },
       data = createData(
         metadata = Metadata(
@@ -332,17 +331,17 @@ class WebmachineV3Specs extends Specification with Mockito with SpecsHelper with
 
   def testO18LastModExists = {
     val lastMod = new Date(System.currentTimeMillis)
-    val ctypes: ContentTypesProvided = (ContentType("text/plain"), (d: ReqRespData) => ((d, result(HTTPBody.Empty)))) :: Nil
+    val ctypes: ContentTypesProvided = List(contentTypeProvided(ContentType("text/plain"), defaultResp, result(HTTPBody.Empty)))
     testDecisionResultHasData(
       o18,
       r => {
-        r.generateEtag(any) answers mkAnswer(None)
-        r.lastModified(any) answers mkAnswer(Some(lastMod))
-        r.expires(any) answers mkAnswer(None)
-        r.contentTypesProvided(any) answers mkAnswer(ctypes)
-        r.charsetsProvided(any) answers mkAnswer(None)
-        r.encodingsProvided(any) answers mkAnswer(None)
-        r.multipleChoices(any) answers mkAnswer(false)
+        r.generateEtag(any) returns ValueRes(None)
+        r.lastModified(any) returns ValueRes(Some(lastMod))
+        r.expires(any) returns ValueRes(None)
+        r.contentTypesProvided(any) returns mkMbAnswer(ctypes)
+        r.charsetsProvided(any) returns ValueRes(None)
+        r.encodingsProvided(any) returns ValueRes(None)
+        r.multipleChoices(any) returns mkMbAnswer(false)
       },
       data = createData(
         metadata = Metadata(
@@ -360,17 +359,17 @@ class WebmachineV3Specs extends Specification with Mockito with SpecsHelper with
 
   def testO18EtagGenerated = {
     val etag = "etag"
-    val ctypes: ContentTypesProvided = (ContentType("text/plain"), (d: ReqRespData) => ((d,result(HTTPBody.Empty)))) :: Nil
+    val ctypes: ContentTypesProvided = List(contentTypeProvided(ContentType("text/plain"), defaultResp, result(HTTPBody.Empty)))
     testDecisionResultHasData(
       o18,
       r => {
-        r.generateEtag(any) answers mkAnswer(Some(etag))
-        r.lastModified(any) answers mkAnswer(None)
-        r.expires(any) answers mkAnswer(None)
-        r.contentTypesProvided(any) answers mkAnswer(ctypes)
-        r.charsetsProvided(any) answers mkAnswer(None)
-        r.encodingsProvided(any) answers mkAnswer(None)
-        r.multipleChoices(any) answers mkAnswer(false)
+        r.generateEtag(any) returns ValueRes(Some(etag))
+        r.lastModified(any) returns ValueRes(None)
+        r.expires(any) returns ValueRes(None)
+        r.contentTypesProvided(any) returns mkMbAnswer(ctypes)
+        r.charsetsProvided(any) returns ValueRes(None)
+        r.encodingsProvided(any) returns ValueRes(None)
+        r.multipleChoices(any) returns mkMbAnswer(false)
       },
       data = createData(method = GET)
     ) {
@@ -381,17 +380,18 @@ class WebmachineV3Specs extends Specification with Mockito with SpecsHelper with
   }
 
   def testO18NotGenerated = {
-    val ctypes: ContentTypesProvided = (ContentType("text/plain"), (d: ReqRespData) => ((d,result(HTTPBody.Empty)))) :: Nil
+    val ctypes: ContentTypesProvided = List(contentTypeProvided(ContentType("text/plain"), defaultResp, result(HTTPBody.Empty)))
+
     testDecisionResultHasData(
       o18,
       r => {
-        r.generateEtag(any) answers mkAnswer(None)
-        r.lastModified(any) answers mkAnswer(None)
-        r.expires(any) answers mkAnswer(None)
-        r.contentTypesProvided(any) answers mkAnswer(ctypes)
-        r.charsetsProvided(any) answers mkAnswer(None)
-        r.encodingsProvided(any) answers mkAnswer(None)
-        r.multipleChoices(any) answers mkAnswer(false)
+        r.generateEtag(any) returns ValueRes(None)
+        r.lastModified(any) returns ValueRes(None)
+        r.expires(any) returns ValueRes(None)
+        r.contentTypesProvided(any) returns mkMbAnswer(ctypes)
+        r.charsetsProvided(any) returns ValueRes(None)
+        r.encodingsProvided(any) returns ValueRes(None)
+        r.multipleChoices(any) returns mkMbAnswer(false)
       },
       data = createData(method = HEAD)
     ) {
@@ -604,19 +604,19 @@ class WebmachineV3Specs extends Specification with Mockito with SpecsHelper with
     val charsetBody = "body3"
     val encodings: EncodingsProvided = Some(("enc1", (s: Array[Byte]) => s ++ encodingBody.getBytes) :: ("enc2", identity[Array[Byte]](_)) :: Nil)
     val charsets: EncodingsProvided = Some(("ch1", (s: Array[Byte]) => s ++ charsetBody.getBytes) :: ("ch2", identity[Array[Byte]](_)) :: Nil)
-    val contentTypesAccepted: ContentTypesAccepted =
-      (ContentType("text/plain"), (d: ReqRespData) => (d.copy(responseBody = setBody.getBytes), ValueRes(true))) ::
-        (ContentType("text/html"), (d: ReqRespData) => (d, ValueRes(false))) ::
-        Nil
+    val contentTypesAccepted: ContentTypesAccepted = List(
+      contentTypeAccepted(ContentType("text/plain"), Response(200, body = HTTPBody(setBody.getBytes)), ValueRes(true)),
+      contentTypeAccepted(ContentType("text/html"), defaultResp, ValueRes(false))
+    )
 
     testDecisionReturnsData(
       n11,
       r => {
-        r.postIsCreate(any) answers mkAnswer(true)
-        r.createPath(any) answers mkAnswer(Some("a/b"))
-        r.contentTypesAccepted(any) answers mkAnswer(contentTypesAccepted)
-        r.encodingsProvided(any) answers mkAnswer(encodings)
-        r.charsetsProvided(any) answers mkAnswer(charsets)
+        r.postIsCreate(any) returns ValueRes(true)
+        r.createPath(any) returns mkAnswer(Some("a/b"))
+        r.contentTypesAccepted(any) returns mkAnswer(contentTypesAccepted)
+        r.encodingsProvided(any) returns ValueRes(encodings)
+        r.charsetsProvided(any) returns ValueRes(charsets)
       },
       data = createData(
         metadata = Metadata(chosenCharset = Some("ch1"), chosenEncoding = Some("enc1")),
@@ -634,7 +634,7 @@ class WebmachineV3Specs extends Specification with Mockito with SpecsHelper with
     val encodings: EncodingsProvided = Some(("enc1", (s: Array[Byte]) => s ++ encodingBody.getBytes) :: ("enc2", identity[Array[Byte]](_)) :: Nil)
     val charsets: EncodingsProvided = Some(("ch1", (s: Array[Byte]) => s ++ charsetBody.getBytes) :: ("ch2", identity[Array[Byte]](_)) :: Nil)
     val contentTypesAccepted: ContentTypesAccepted = List(
-      contentTypeAccepted(ContentType("text/plain"), Response(body = FixedLengthBody(setBody.getBytes)), ValueRes(true)),
+      contentTypeAccepted(ContentType("text/plain"), Response(200, body = HTTPBody(setBody.getBytes)), ValueRes(true)),
       contentTypeAccepted(ContentType("text/html"), defaultResp, ValueRes(false))
     )
 
@@ -673,9 +673,9 @@ class WebmachineV3Specs extends Specification with Mockito with SpecsHelper with
     testDecisionResultHasData(
       n11,
       r => {
-        r.postIsCreate(any) answers mkAnswer(true)
-        r.createPath(any) answers mkAnswer(Some("a/b"))
-        r.contentTypesAccepted(any) answers mkAnswer(contentTypesAccepted)
+        r.postIsCreate(any) returns ValueRes(true)
+        r.createPath(any) returns mkAnswer(Some("a/b"))
+        r.contentTypesAccepted(any) returns mkAnswer(contentTypesAccepted)
       },
       data = createData(headers = Map(ContentTypeHeader -> "text/html"))
     ) { _.statusCode must beEqualTo(500) }
@@ -689,7 +689,7 @@ class WebmachineV3Specs extends Specification with Mockito with SpecsHelper with
     val encodings: EncodingsProvided = Some(("enc1", (s: Array[Byte]) => s ++ encodingBody.getBytes) :: ("enc2", identity[Array[Byte]](_)) :: Nil)
     val charsets: EncodingsProvided = Some(("ch1", (s: Array[Byte]) => s ++ charsetBody.getBytes) :: ("ch2", identity[Array[Byte]](_)) :: Nil)
     val contentTypesAccepted: ContentTypesAccepted = List(
-      contentTypeAccepted(ContentType("text/plain"), Response(200, body = FixedLengthBody(setBody.getBytes)), ValueRes(true)),
+      contentTypeAccepted(ContentType("text/plain"), Response(200, body = HTTPBody(setBody.getBytes)), ValueRes(true)),
       contentTypeAccepted(ContentType("text/html"), defaultResp, ValueRes(false))
     )
 
@@ -775,7 +775,7 @@ class WebmachineV3Specs extends Specification with Mockito with SpecsHelper with
       n11,
       r => {
         r.postIsCreate(any) returns ValueRes(false)
-        r.processPost(any) returns mkAnswer(true, Response(200, body = FixedLengthBody(processPostBody.getBytes)))
+        r.processPost(any) returns mkAnswer(true, Response(200, body = HTTPBody(processPostBody.getBytes)))
         r.encodingsProvided(any) returns ValueRes(encodings)
         r.charsetsProvided(any) returns ValueRes(charsets)
       },
@@ -793,10 +793,10 @@ class WebmachineV3Specs extends Specification with Mockito with SpecsHelper with
     testDecisionResultHasData(
       n11,
       r => {
-        r.postIsCreate(any) answers mkAnswer(false)
-        r.processPost(any) answers mkAnswer(true)
-        r.encodingsProvided(any) answers mkAnswer(encodings)
-        r.charsetsProvided(any) answers mkAnswer(charsets)
+        r.postIsCreate(any) returns ValueRes(false)
+        r.processPost(any) returns mkAnswer(true)
+        r.encodingsProvided(any) returns ValueRes(encodings)
+        r.charsetsProvided(any) returns ValueRes(charsets)
       },
       data = createData(metadata = Metadata(chosenCharset = Some("ch1"), chosenEncoding = Some("enc1")))
     ) { _.responseBody must beEqualTo(HTTPBody.Empty) }
@@ -810,8 +810,8 @@ class WebmachineV3Specs extends Specification with Mockito with SpecsHelper with
     testDecisionResultHasData(
       n11,
       r => {
-        r.postIsCreate(any) answers mkAnswer(false)
-        r.processPost(any) answers mkAnswer(false)
+        r.postIsCreate(any) returns ValueRes(false)
+        r.processPost(any) returns mkAnswer(false)
       }
     ) { _.statusCode must beEqualTo(500) }
   }
@@ -822,19 +822,19 @@ class WebmachineV3Specs extends Specification with Mockito with SpecsHelper with
     val charsetBody = "body3"
     val encodings: EncodingsProvided = Some(("enc1", (s: Array[Byte]) => s ++ encodingBody.getBytes) :: ("enc2", identity[Array[Byte]](_)) :: Nil)
     val charsets: EncodingsProvided = Some(("ch1", (s: Array[Byte]) => s ++ charsetBody.getBytes) :: ("ch2", identity[Array[Byte]](_)) :: Nil)
-    val contentTypesAccepted: ContentTypesAccepted =
-      (ContentType("text/plain"), (d: ReqRespData) => (d.copy(responseBody = setBody.getBytes), ValueRes(true))) ::
-        (ContentType("text/html"), (d: ReqRespData) => (d, ValueRes(false))) ::
-        Nil
+    val contentTypesAccepted: ContentTypesAccepted = List(
+      contentTypeAccepted(ContentType("text/plain"), Response(200, body = HTTPBody(setBody.getBytes)), ValueRes(true)),
+      contentTypeAccepted(ContentType("text/html"), defaultResp, ValueRes(false))
+    )
 
     testDecisionReturnsDecisionAndData(
       o14,
       p11,
       r => {
-        r.isConflict(any) answers mkAnswer(false)
-        r.contentTypesAccepted(any) answers mkAnswer(contentTypesAccepted)
-        r.encodingsProvided(any) answers mkAnswer(encodings)
-        r.charsetsProvided(any) answers mkAnswer(charsets)
+        r.isConflict(any) returns mkMbAnswer(false)
+        r.contentTypesAccepted(any) returns mkAnswer(contentTypesAccepted)
+        r.encodingsProvided(any) returns ValueRes(encodings)
+        r.charsetsProvided(any) returns ValueRes(charsets)
       },
       data = createData(metadata = Metadata(chosenCharset = Some("ch1"), chosenEncoding = Some("enc1")), headers = Map(ContentTypeHeader-> "text/plain"))
     ) {
@@ -843,15 +843,14 @@ class WebmachineV3Specs extends Specification with Mockito with SpecsHelper with
   }
 
   def testO14ContentTypeAcceptedReturnsFalse = {
-    val contentTypesAccepted: ContentTypesAccepted =
-      (ContentType("text/html"), (d: ReqRespData) => (d, ValueRes(false))) ::
-        Nil
+    val contentTypesAccepted: ContentTypesAccepted = List(contentTypeAccepted(ContentType("text/html"), defaultResp, ValueRes(false)))
+
 
     testDecisionReturnsData(
       o14,
       r => {
-        r.isConflict(any) answers mkAnswer(false)
-        r.contentTypesAccepted(any) answers mkAnswer(contentTypesAccepted)
+        r.isConflict(any) returns mkMbAnswer(false)
+        r.contentTypesAccepted(any) returns mkAnswer(contentTypesAccepted)
       },
       data = createData(headers = Map(ContentTypeHeader -> "text/html"))
     ) { _.statusCode must beEqualTo(500) }
@@ -862,8 +861,8 @@ class WebmachineV3Specs extends Specification with Mockito with SpecsHelper with
     testDecisionReturnsData(
       o14,
       r => {
-        r.isConflict(any) answers mkAnswer(false)
-        r.contentTypesAccepted(any) answers mkAnswer(Nil)
+        r.isConflict(any) returns mkMbAnswer(false)
+        r.contentTypesAccepted(any) returns mkAnswer(Nil)
       },
       data = createData(headers = Map(ContentTypeHeader -> "text/html"))
     ) { _.statusCode must beEqualTo(415) }
