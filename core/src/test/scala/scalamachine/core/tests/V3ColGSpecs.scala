@@ -2,12 +2,10 @@ package scalamachine.core.tests
 
 import org.specs2._
 import mock._
-import org.mockito.{Matchers => MM}
 import scalamachine.core._
 import Resource._
 import v3.WebmachineDecisions
 import HTTPHeaders._
-import HTTPMethods._
 
 
 class V3ColGSpecs extends Specification with Mockito with SpecsHelper with WebmachineDecisions { def is =
@@ -43,21 +41,21 @@ class V3ColGSpecs extends Specification with Mockito with SpecsHelper with Webma
 
   def testVaryAll = {
     import Res._
-    val ctypes: ContentTypesProvided =
-      (ContentType("text/plain"), (d: ReqRespData) => (d,result(FixedLengthBody("")))) ::
-        (ContentType("application/json"), (d: ReqRespData) => (d,result(FixedLengthBody("")))) ::
-        Nil
+    val ctypes: ContentTypesProvided = List(
+      contentTypeProvided(ContentType("text/plain"), defaultResp, result(FixedLengthBody(""))),
+      contentTypeProvided(ContentType("application/json"), defaultResp, result(FixedLengthBody("")))
+    )
 
     val charsets: CharsetsProvided = Some(("charset1", identity[Array[Byte]](_)) :: ("charset2", identity[Array[Byte]](_)) :: Nil)
     val encodings: EncodingsProvided = Some(("identity", identity[Array[Byte]](_)) :: ("gzip", identity[Array[Byte]](_)) :: Nil)
     testDecisionResultHasData(
       g7,
       resource => {
-        resource.contentTypesProvided(any) answers mkAnswer(ctypes)
-        resource.charsetsProvided(any) answers mkAnswer(charsets)
-        resource.encodingsProvided(any) answers mkAnswer(encodings)
-        resource.variances(any) answers mkAnswer(Nil)
-        resource.resourceExists(any) answers mkAnswer(true)
+        resource.contentTypesProvided(any) returns mkMbAnswer(ctypes)
+        resource.charsetsProvided(any) returns ValueRes(charsets)
+        resource.encodingsProvided(any) returns ValueRes(encodings)
+        resource.variances(any) returns ValueRes(Nil)
+        resource.resourceExists(any) returns mkMbAnswer(true)
       }
     ) {
       _.responseHeader(Vary) must beSome.like {
@@ -74,11 +72,11 @@ class V3ColGSpecs extends Specification with Mockito with SpecsHelper with Webma
     testDecisionResultHasData(
       g7,
       resource => {
-        resource.contentTypesProvided(any) answers mkAnswer(ctypes)
-        resource.charsetsProvided(any) answers mkAnswer(charsets)
-        resource.encodingsProvided(any) answers mkAnswer(encodings)
-        resource.variances(any) answers mkAnswer(Nil)
-        resource.resourceExists(any) answers mkAnswer(true)
+        resource.contentTypesProvided(any) returns mkMbAnswer(ctypes)
+        resource.charsetsProvided(any) returns ValueRes(charsets)
+        resource.encodingsProvided(any) returns ValueRes(encodings)
+        resource.variances(any) returns ValueRes(Nil)
+        resource.resourceExists(any) returns mkMbAnswer(true)
       }
     ) {
       _.responseHeader(Vary) must beSome.like {
@@ -89,17 +87,17 @@ class V3ColGSpecs extends Specification with Mockito with SpecsHelper with Webma
 
   def testVaryContentTypesProvided1 = {
     import Res._
-    val ctypes: ContentTypesProvided = (ContentType("application/json"), (d: ReqRespData) => (d, result(FixedLengthBody("")))) :: Nil
+    val ctypes: ContentTypesProvided = List(contentTypeProvided(ContentType("application/json"), defaultResp, result(FixedLengthBody(""))))
     val charsets: CharsetsProvided = Some(("charset1", identity[Array[Byte]](_)) :: ("charset2", identity[Array[Byte]](_)) :: Nil)
     val encodings: EncodingsProvided = Some(("identity", identity[Array[Byte]](_)) :: ("gzip", identity[Array[Byte]](_)) :: Nil)
     testDecisionResultHasData(
       g7,
       resource => {
-        resource.contentTypesProvided(any) answers mkAnswer(ctypes)
-        resource.charsetsProvided(any) answers mkAnswer(charsets)
-        resource.encodingsProvided(any) answers mkAnswer(encodings)
-        resource.variances(any) answers mkAnswer(Nil)
-        resource.resourceExists(any) answers mkAnswer(true)
+        resource.contentTypesProvided(any) returns mkMbAnswer(ctypes)
+        resource.charsetsProvided(any) returns ValueRes(charsets)
+        resource.encodingsProvided(any) returns ValueRes(encodings)
+        resource.variances(any) returns ValueRes(Nil)
+        resource.resourceExists(any) returns mkMbAnswer(true)
       }
     ) {
       _.responseHeader(Vary) must beSome.like {
@@ -110,21 +108,21 @@ class V3ColGSpecs extends Specification with Mockito with SpecsHelper with Webma
 
   def testVaryCharsetsShortCircuit = {
     import Res._
-    val ctypes: ContentTypesProvided =
-      (ContentType("text/plain"), (d: ReqRespData) => (d, result(FixedLengthBody("")))) ::
-        (ContentType("application/json"), (d: ReqRespData) => (d, result(FixedLengthBody("")))) ::
-        Nil
+    val ctypes: ContentTypesProvided = List(
+      contentTypeProvided(ContentType("text/plain"), defaultResp, result(FixedLengthBody(""))),
+      contentTypeProvided(ContentType("application/json"), defaultResp, result(FixedLengthBody("")))
+    )
 
     val charsets: CharsetsProvided = None
     val encodings: EncodingsProvided = Some(("identity", identity[Array[Byte]](_)) :: ("gzip", identity[Array[Byte]](_)) :: Nil)
     testDecisionResultHasData(
       g7,
       resource => {
-        resource.contentTypesProvided(any) answers mkAnswer(ctypes)
-        resource.charsetsProvided(any) answers mkAnswer(charsets)
-        resource.encodingsProvided(any) answers mkAnswer(encodings)
-        resource.variances(any) answers mkAnswer(Nil)
-        resource.resourceExists(any) answers mkAnswer(true)
+        resource.contentTypesProvided(any) returns mkMbAnswer(ctypes)
+        resource.charsetsProvided(any) returns ValueRes(charsets)
+        resource.encodingsProvided(any) returns ValueRes(encodings)
+        resource.variances(any) returns ValueRes(Nil)
+        resource.resourceExists(any) returns mkMbAnswer(true)
       }
     ) {
       _.responseHeader(Vary) must beSome.like {
@@ -135,21 +133,21 @@ class V3ColGSpecs extends Specification with Mockito with SpecsHelper with Webma
 
   def testVaryCharsetsProvided0 = {
     import Res._
-    val ctypes: ContentTypesProvided =
-      (ContentType("text/plain"), (d: ReqRespData) => (d, result(HTTPBody.Empty))) ::
-        (ContentType("application/json"), (d: ReqRespData) => (d, result(HTTPBody.Empty))) ::
-        Nil
+    val ctypes: ContentTypesProvided = List(
+      contentTypeProvided(ContentType("text/plain"), defaultResp, result(HTTPBody.Empty)),
+      contentTypeProvided(ContentType("application/json"), defaultResp, result(HTTPBody.Empty))
+    )
 
     val charsets: CharsetsProvided = Some(Nil)
     val encodings: EncodingsProvided = Some(("identity", identity[Array[Byte]](_)) :: ("gzip", identity[Array[Byte]](_)) :: Nil)
     testDecisionResultHasData(
       g7,
       resource => {
-        resource.contentTypesProvided(any) answers mkAnswer(ctypes)
-        resource.charsetsProvided(any) answers mkAnswer(charsets)
-        resource.encodingsProvided(any) answers mkAnswer(encodings)
-        resource.variances(any) answers mkAnswer(Nil)
-        resource.resourceExists(any) answers mkAnswer(true)
+        resource.contentTypesProvided(any) returns mkMbAnswer(ctypes)
+        resource.charsetsProvided(any) returns ValueRes(charsets)
+        resource.encodingsProvided(any) returns ValueRes(encodings)
+        resource.variances(any) returns ValueRes(Nil)
+        resource.resourceExists(any) returns mkMbAnswer(true)
       }
     ) {
       _.responseHeader(Vary) must beSome.like {
@@ -160,21 +158,21 @@ class V3ColGSpecs extends Specification with Mockito with SpecsHelper with Webma
 
   def testVaryCharsetsProvided1 = {
     import Res._
-    val ctypes: ContentTypesProvided =
-      (ContentType("text/plain"), (d: ReqRespData) => (d, result(HTTPBody.Empty))) ::
-        (ContentType("application/json"), (d: ReqRespData) => (d, result(HTTPBody.Empty))) ::
-        Nil
+    val ctypes: ContentTypesProvided = List(
+      contentTypeProvided(ContentType("text/plain"), defaultResp, result(HTTPBody.Empty)),
+      contentTypeProvided(ContentType("application/json"), defaultResp, result(HTTPBody.Empty))
+    )
 
     val charsets: CharsetsProvided = Some(("charset2", identity[Array[Byte]](_)) :: Nil)
     val encodings: EncodingsProvided = Some(("identity", identity[Array[Byte]](_)) :: ("gzip", identity[Array[Byte]](_)) :: Nil)
     testDecisionResultHasData(
       g7,
       resource => {
-        resource.contentTypesProvided(any) answers mkAnswer(ctypes)
-        resource.charsetsProvided(any) answers mkAnswer(charsets)
-        resource.encodingsProvided(any) answers mkAnswer(encodings)
-        resource.variances(any) answers mkAnswer(Nil)
-        resource.resourceExists(any) answers mkAnswer(true)
+        resource.contentTypesProvided(any) returns mkMbAnswer(ctypes)
+        resource.charsetsProvided(any) returns ValueRes(charsets)
+        resource.encodingsProvided(any) returns ValueRes(encodings)
+        resource.variances(any) returns ValueRes(Nil)
+        resource.resourceExists(any) returns mkMbAnswer(true)
       }
     ) {
       _.responseHeader(Vary) must beSome.like {
@@ -185,21 +183,21 @@ class V3ColGSpecs extends Specification with Mockito with SpecsHelper with Webma
 
   def testVaryEncodingsShortCircuit = {
     import Res._
-    val ctypes: ContentTypesProvided =
-      (ContentType("text/plain"), (d: ReqRespData) => (d, result(HTTPBody.Empty))) ::
-        (ContentType("application/json"), (d: ReqRespData) => (d, result(HTTPBody.Empty))) ::
-        Nil
+    val ctypes: ContentTypesProvided = List(
+      contentTypeProvided(ContentType("text/plain"), defaultResp, result(HTTPBody.Empty)),
+      contentTypeProvided(ContentType("application/json"), defaultResp, result(HTTPBody.Empty))
+    )
 
     val charsets: CharsetsProvided = Some(("charset1", identity[Array[Byte]](_)) :: ("charset2", identity[Array[Byte]](_)) :: Nil)
     val encodings: EncodingsProvided = None
     testDecisionResultHasData(
       g7,
       resource => {
-        resource.contentTypesProvided(any) answers mkAnswer(ctypes)
-        resource.charsetsProvided(any) answers mkAnswer(charsets)
-        resource.encodingsProvided(any) answers mkAnswer(encodings)
-        resource.variances(any) answers mkAnswer(Nil)
-        resource.resourceExists(any) answers mkAnswer(true)
+        resource.contentTypesProvided(any) returns mkMbAnswer(ctypes)
+        resource.charsetsProvided(any) returns ValueRes(charsets)
+        resource.encodingsProvided(any) returns ValueRes(encodings)
+        resource.variances(any) returns ValueRes(Nil)
+        resource.resourceExists(any) returns mkMbAnswer(true)
       }
     ) {
       _.responseHeader(Vary) must beSome.like {
@@ -211,21 +209,21 @@ class V3ColGSpecs extends Specification with Mockito with SpecsHelper with Webma
 
   def testVaryEncodingsProvided0 = {
     import Res._
-    val ctypes: ContentTypesProvided =
-      (ContentType("text/plain"), (d: ReqRespData) => (d, result(HTTPBody.Empty))) ::
-        (ContentType("application/json"), (d: ReqRespData) => (d, result(HTTPBody.Empty))) ::
-        Nil
+    val ctypes: ContentTypesProvided = List(
+      contentTypeProvided(ContentType("text/plain"), defaultResp, result(HTTPBody.Empty)),
+      contentTypeProvided(ContentType("application/json"), defaultResp, result(HTTPBody.Empty))
+    )
 
     val charsets: CharsetsProvided = Some(("charset1", identity[Array[Byte]](_)) :: ("charset2", identity[Array[Byte]](_)) :: Nil)
     val encodings: EncodingsProvided = Some(Nil)
     testDecisionResultHasData(
       g7,
       resource => {
-        resource.contentTypesProvided(any) answers mkAnswer(ctypes)
-        resource.charsetsProvided(any) answers mkAnswer(charsets)
-        resource.encodingsProvided(any) answers mkAnswer(encodings)
-        resource.variances(any) answers mkAnswer(Nil)
-        resource.resourceExists(any) answers mkAnswer(true)
+        resource.contentTypesProvided(any) returns mkMbAnswer(ctypes)
+        resource.charsetsProvided(any) returns ValueRes(charsets)
+        resource.encodingsProvided(any) returns ValueRes(encodings)
+        resource.variances(any) returns ValueRes(Nil)
+        resource.resourceExists(any) returns mkMbAnswer(true)
       }
     ) {
       _.responseHeader(Vary) must beSome.like {
@@ -236,21 +234,21 @@ class V3ColGSpecs extends Specification with Mockito with SpecsHelper with Webma
 
   def testVaryEncodingsProvided1 = {
     import Res._
-    val ctypes: ContentTypesProvided =
-      (ContentType("text/plain"), (d: ReqRespData) => (d, result(HTTPBody.Empty))) ::
-        (ContentType("application/json"), (d: ReqRespData) => (d, result(HTTPBody.Empty))) ::
-        Nil
+    val ctypes: ContentTypesProvided = List(
+      contentTypeProvided(ContentType("text/plain"), defaultResp, result(HTTPBody.Empty)),
+      contentTypeProvided(ContentType("application/json"), defaultResp, result(HTTPBody.Empty))
+    )
 
     val charsets: CharsetsProvided = Some(("charset1", identity[Array[Byte]](_)) :: ("charset2", identity[Array[Byte]](_)) :: Nil)
     val encodings: EncodingsProvided = Some(("gzip", identity[Array[Byte]](_)) :: Nil)
     testDecisionResultHasData(
       g7,
       resource => {
-        resource.contentTypesProvided(any) answers mkAnswer(ctypes)
-        resource.charsetsProvided(any) answers mkAnswer(charsets)
-        resource.encodingsProvided(any) answers mkAnswer(encodings)
-        resource.variances(any) answers mkAnswer(Nil)
-        resource.resourceExists(any) answers mkAnswer(true)
+        resource.contentTypesProvided(any) returns mkMbAnswer(ctypes)
+        resource.charsetsProvided(any) returns ValueRes(charsets)
+        resource.encodingsProvided(any) returns ValueRes(encodings)
+        resource.variances(any) returns ValueRes(Nil)
+        resource.resourceExists(any) returns mkMbAnswer(true)
       }
     ) {
       _.responseHeader(Vary) must beSome.like {
@@ -261,21 +259,21 @@ class V3ColGSpecs extends Specification with Mockito with SpecsHelper with Webma
 
   def testVaryResourceAdditional = {
     import Res._
-    val ctypes: ContentTypesProvided =
-      (ContentType("text/plain"), (d: ReqRespData) => (d, result(HTTPBody.Empty))) ::
-        (ContentType("application/json"), (d: ReqRespData) => (d, result(HTTPBody.Empty))) ::
-        Nil
+    val ctypes: ContentTypesProvided = List(
+      contentTypeProvided(ContentType("text/plain"), defaultResp, result(HTTPBody.Empty)),
+      contentTypeProvided(ContentType("application/json"), defaultResp, result(HTTPBody.Empty))
+    )
 
     val charsets: CharsetsProvided = Some(("charset1", identity[Array[Byte]](_)) :: ("charset2", identity[Array[Byte]](_)) :: Nil)
     val encodings: EncodingsProvided = Some(("identity", identity[Array[Byte]](_)) :: ("gzip", identity[Array[Byte]](_)) :: Nil)
     testDecisionResultHasData(
       g7,
       resource => {
-        resource.contentTypesProvided(any) answers mkAnswer(ctypes)
-        resource.charsetsProvided(any) answers mkAnswer(charsets)
-        resource.encodingsProvided(any) answers mkAnswer(encodings)
-        resource.variances(any) answers mkAnswer("One" :: "Two" :: Nil)
-        resource.resourceExists(any) answers mkAnswer(true)
+        resource.contentTypesProvided(any) returns mkMbAnswer(ctypes)
+        resource.charsetsProvided(any) returns ValueRes(charsets)
+        resource.encodingsProvided(any) returns ValueRes(encodings)
+        resource.variances(any) returns ValueRes("One" :: "Two" :: Nil)
+        resource.resourceExists(any) returns mkMbAnswer(true)
       }
     ) {
       _.responseHeader(Vary) must beSome.like {
@@ -289,11 +287,11 @@ class V3ColGSpecs extends Specification with Mockito with SpecsHelper with Webma
       g7,
       g8,
       resource => {
-        resource.contentTypesProvided(any) answers mkAnswer(Nil)
-        resource.charsetsProvided(any) answers mkAnswer(None)
-        resource.encodingsProvided(any) answers mkAnswer(None)
-        resource.variances(any) answers mkAnswer(Nil)
-        resource.resourceExists(any) answers mkAnswer(true)
+        resource.contentTypesProvided(any) returns mkMbAnswer(Nil)
+        resource.charsetsProvided(any) returns ValueRes(None)
+        resource.encodingsProvided(any) returns ValueRes(None)
+        resource.variances(any) returns ValueRes(Nil)
+        resource.resourceExists(any) returns mkMbAnswer(true)
       }
     )
   }
@@ -303,11 +301,11 @@ class V3ColGSpecs extends Specification with Mockito with SpecsHelper with Webma
       g7,
       h7,
       resource => {
-        resource.contentTypesProvided(any) answers mkAnswer(Nil)
-        resource.charsetsProvided(any) answers mkAnswer(None)
-        resource.encodingsProvided(any) answers mkAnswer(None)
-        resource.variances(any) answers mkAnswer(Nil)
-        resource.resourceExists(any) answers mkAnswer(false)
+        resource.contentTypesProvided(any) returns mkMbAnswer(Nil)
+        resource.charsetsProvided(any) returns ValueRes(None)
+        resource.encodingsProvided(any) returns ValueRes(None)
+        resource.variances(any) returns ValueRes(Nil)
+        resource.resourceExists(any) returns mkMbAnswer(false)
       }
     )
   }
