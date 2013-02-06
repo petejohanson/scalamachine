@@ -97,8 +97,8 @@ class WebmachineV3Specs extends Specification with Mockito with SpecsHelper with
   "M5 - POST?"                                                                      ^ testIsPost(m5,n5,410) ^
                                                                                     p^
   "M7 - Can POST to missing resource?"                                              ^
-    "if resource returns true, N11 is returned"                                     ! testDecisionReturnsDecision(m7,n11,_.allowMissingPost(any) answers mkAnswer(true)) ^
-    "otherwise, response with code 404 is returned"                                 ! testDecisionReturnsData(m7,_.allowMissingPost(any) answers mkAnswer(false)) { _.statusCode must_== 404 } ^
+    "if resource returns true, N11 is returned"                                     ! testDecisionReturnsDecision(m7,n11,_.allowMissingPost(any) returns ValueRes(true)) ^
+    "otherwise, response with code 404 is returned"                                 ! testDecisionReturnsData(m7,_.allowMissingPost(any) returns ValueRes(false)) { _.statusCode must_== 404 } ^
                                                                                     p^
   "M16 - DELETE?"                                                                   ^
     "if request method is DELETE, M20 returned"                                     ! testDecisionReturnsDecision(m16,m20,r => {}, data = createData(method = DELETE)) ^
@@ -113,8 +113,8 @@ class WebmachineV3Specs extends Specification with Mockito with SpecsHelper with
     "if false, response with code 202 is returned"                                  ! testDecisionReturnsData(m20b,_.deleteCompleted(any) returns mkMbAnswer(false)) { _.statusCode must_== 202 } ^
                                                                                     p^
   "N5 - Can POST to missing resource?"                                              ^
-    "if true, N11 returned"                                                         ! testDecisionReturnsDecision(n5,n11,_.allowMissingPost(any) answers mkAnswer(true)) ^
-    "otherwise, response with code 410 returned"                                    ! testDecisionReturnsData(n5,_.allowMissingPost(any) answers mkAnswer(false)) { _.statusCode must_== 410 } ^
+    "if true, N11 returned"                                                         ! testDecisionReturnsDecision(n5,n11,_.allowMissingPost(any) returns ValueRes(true)) ^
+    "otherwise, response with code 410 returned"                                    ! testDecisionReturnsData(n5,_.allowMissingPost(any) returns ValueRes(false)) { _.statusCode must_== 410 } ^
                                                                                     p^
   "N11 - Process Post, Determine Redirect"                                          ^
     "Process Post"                                                                  ^
@@ -438,14 +438,14 @@ class WebmachineV3Specs extends Specification with Mockito with SpecsHelper with
 
   def testIUMSLessThanLastMod = {
     val date = DateUtil.parseDate("Sat, 29 Oct 1995 19:43:31 GMT")
-    testDecisionReturnsData(h12,_.lastModified(any) answers mkAnswer(Some(date)), data = createData(headers = Map(IfUnmodifiedSince -> "Sat, 29 Oct 1994 19:43:31 GMT"))) {
+    testDecisionReturnsData(h12,_.lastModified(any) returns ValueRes(Some(date)), data = createData(headers = Map(IfUnmodifiedSince -> "Sat, 29 Oct 1994 19:43:31 GMT"))) {
       _.statusCode must beEqualTo(412)
     }
   }
 
   def testIUMSGreaterThanLastMod = {
     val date = DateUtil.parseDate("Sat, 29 Oct 1993 19:43:31 GMT")
-    testDecisionReturnsDecision(h12,i12,_.lastModified(any) answers mkAnswer(Some(date)), data = createData(headers = Map(IfUnmodifiedSince -> "Sat, 29 Oct 1994 19:43:31 GMT")))
+    testDecisionReturnsDecision(h12,i12,_.lastModified(any) returns ValueRes(Some(date)), data = createData(headers = Map(IfUnmodifiedSince -> "Sat, 29 Oct 1994 19:43:31 GMT")))
   }
 
   def testIsPutTrue = {
@@ -472,7 +472,7 @@ class WebmachineV3Specs extends Specification with Mockito with SpecsHelper with
 
   def testResourceMovedPermanently(toTest: Decision) = {
     val location = "http://somewhere.com"
-    testDecisionReturnsData(toTest,r => r.movedPermanently(any) answers mkAnswer(Some(location))) {
+    testDecisionReturnsData(toTest,r => r.movedPermanently(any) returns ValueRes(Some(location))) {
       d => (d.statusCode must beEqualTo(301)) and (d.responseHeader(Location) must beSome.like {
         case loc => loc must beEqualTo(location)
       })
@@ -480,7 +480,7 @@ class WebmachineV3Specs extends Specification with Mockito with SpecsHelper with
   }
 
   def testResourceNotMovedPermanently(toTest: Decision, proceed: Decision) = {
-    testDecisionReturnsDecision(toTest,proceed,r => r.movedPermanently(any) answers mkAnswer(None))
+    testDecisionReturnsDecision(toTest,proceed,r => r.movedPermanently(any) returns ValueRes(None))
   }
 
   def testIfNoneMatchStar = {
@@ -510,24 +510,24 @@ class WebmachineV3Specs extends Specification with Mockito with SpecsHelper with
   }
 
   def testResourceExistedPrevTrue = {
-    testDecisionReturnsDecision(k7,k5, _.previouslyExisted(any) answers mkAnswer(true))
+    testDecisionReturnsDecision(k7,k5, _.previouslyExisted(any) returns ValueRes(true))
   }
 
   def testResourceExistedPrevFalse = {
-    testDecisionReturnsDecision(k7,l7, _.previouslyExisted(any) answers mkAnswer(false))
+    testDecisionReturnsDecision(k7,l7, _.previouslyExisted(any) returns ValueRes(false))
   }
 
   def testIfNoneMatchHasEtag = {
-    testDecisionReturnsDecision(k13,j18,_.generateEtag(any) answers mkAnswer(Some("1")), data = createData(headers = Map(IfNoneMatch -> "1,2")))
+    testDecisionReturnsDecision(k13,j18,_.generateEtag(any) returns ValueRes(Some("1")), data = createData(headers = Map(IfNoneMatch -> "1,2")))
   }
 
   def testIfNoneMatchMissingEtag = {
-    testDecisionReturnsDecision(k13,l13,_.generateEtag(any) answers mkAnswer(None), data = createData(headers = Map(IfNoneMatch -> "1,2")))
+    testDecisionReturnsDecision(k13,l13,_.generateEtag(any) returns ValueRes(None), data = createData(headers = Map(IfNoneMatch -> "1,2")))
   }
 
   def testResourceMovedTemporarily = {
     val location = "http://abc.com"
-    testDecisionReturnsData(l5,_.movedTemporarily(any) answers mkAnswer(Some(location))) {
+    testDecisionReturnsData(l5,_.movedTemporarily(any) returns ValueRes(Some(location))) {
       d => (d.statusCode must beEqualTo(307)) and (d.responseHeader(Location) must beSome.like {
         case loc => loc must beEqualTo(location)
       })
@@ -535,7 +535,7 @@ class WebmachineV3Specs extends Specification with Mockito with SpecsHelper with
   }
 
   def testResourceNotMovedTemporarily = {
-    testDecisionReturnsDecision(l5,m5,_.movedTemporarily(any) answers mkAnswer(None))
+    testDecisionReturnsDecision(l5,m5,_.movedTemporarily(any) returns ValueRes(None))
   }
 
   def testIsPost(toTest: Decision,whenPost:Decision,whenNot:Int) =
@@ -583,7 +583,7 @@ class WebmachineV3Specs extends Specification with Mockito with SpecsHelper with
     testDecisionReturnsDecision(
       l17,
       m16,
-      _.lastModified(any) answers mkAnswer(Util.parseDate("Sun, 06 Nov 1995 08:49:37 GMT")),
+      _.lastModified(any) returns ValueRes(Util.parseDate("Sun, 06 Nov 1995 08:49:37 GMT")),
       data = createData(headers = Map(IfModifiedSince -> "Sun, 06 Nov 1994 08:49:37 GMT"))
     )
   }
@@ -591,7 +591,7 @@ class WebmachineV3Specs extends Specification with Mockito with SpecsHelper with
   def testLastModLessThanIMS = {
     testDecisionReturnsData(
      l17,
-      _.lastModified(any) answers mkAnswer(Util.parseDate("Sun, 06 Nov 1993 08:49:37 GMT")),
+      _.lastModified(any) returns ValueRes(Util.parseDate("Sun, 06 Nov 1993 08:49:37 GMT")),
       data = createData(headers = Map(IfModifiedSince -> "Sun, 06 Nov 1994 08:49:37 GMT"))
     ) {
       _.statusCode must beEqualTo(304)
