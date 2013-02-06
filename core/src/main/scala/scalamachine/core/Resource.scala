@@ -12,8 +12,6 @@ import HTTPMethods._
 trait Resource {
   import Resource._
   import Res._
-  type MbResponse = Option[Response]
-  private val NoResponse = Option.empty[Response]
 
   //def init: C
 
@@ -308,8 +306,39 @@ trait Resource {
 }
 
 object Resource {
-  type ContentTypesProvided = List[(ContentType, Request => (Response, Res[HTTPBody]))]
-  type ContentTypesAccepted = List[(ContentType, Request => (Response, Res[Boolean]))]
+  type MbResponse = Option[Response]
+  val NoResponse = Option.empty[Response]
+
+  /**
+   * create a single element in a ContentTypesProvided list
+   * @param contentType the content type
+   * @param fn the function to convert a Request to a (Response, Res[HTTPBody]) tuple
+   * @return the list element
+   */
+  def contentTypeProvided(contentType: ContentType)
+                         (fn: Request => (Response, Res[HTTPBody])): ContentTypeProvided = {
+    contentType -> fn
+  }
+
+  /**
+   * create a single element in a ContentTypesProvided list
+   * @param contentType the content type
+   * @param response the response to return, regardless of the request that's passed to the function (2nd element of the tuple)
+   * @param httpBodyRes the Res[HTTPBody] to return
+   * @return the list element
+   */
+  def contentTypeProvided(contentType: ContentType,
+                          response: Response,
+                          httpBodyRes: Res[HTTPBody]): ContentTypeProvided = {
+    contentTypeProvided(contentType) { _ =>
+     response -> httpBodyRes
+    }
+  }
+
+  type ContentTypeProvided = (ContentType, Request => (Response, Res[HTTPBody]))
+  type ContentTypesProvided = List[ContentTypeProvided]
+  type ContentTypeAccepted = (ContentType, Request => (Response, Res[Boolean]))
+  type ContentTypesAccepted = List[ContentTypeAccepted]
   type CharsetsProvided = Option[List[(String,Array[Byte] => Array[Byte])]] // None value specifies charset negotiation short-circuiting
   type EncodingsProvided = Option[List[(String,Array[Byte] => Array[Byte])]] // None values specifies encoding negotiation short-circuiting
 }
