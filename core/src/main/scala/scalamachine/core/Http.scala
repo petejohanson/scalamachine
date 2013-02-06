@@ -104,6 +104,11 @@ object HTTPBody {
   sealed trait Type
   case object FixedLength extends Type
   case object LazyStream extends Type
+
+  def apply(bytes: Array[Byte]) = FixedLengthBody(bytes)
+  def apply(produce: () => HTTPBody.Chunk) = LazyStreamBody(produce)
+
+  //TODO: apply methods for other LazyStreamBody constructors
 }
 
 case class FixedLengthBody(bytes: Array[Byte]) extends HTTPBody {
