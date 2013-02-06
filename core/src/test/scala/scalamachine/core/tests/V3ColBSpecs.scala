@@ -75,47 +75,49 @@ class V3ColBSpecs extends Specification with Mockito with SpecsHelper with Webma
                                                                                     end
 
   def testServiceAvailTrue = {
-    testDecisionReturnsDecision(b13, b12, _.serviceAvailable(any) answers mkAnswer(true))
+    testDecisionReturnsDecision(b13, b12, _.serviceAvailable(any) returns ValueRes(true))
   }
 
   def testServiceAvailFalse = {
-    testDecisionReturnsData(b13, _.serviceAvailable(any) answers mkAnswer(false)) {
+    testDecisionReturnsData(b13, _.serviceAvailable(any) returns ValueRes(false)) {
       _.statusCode must beEqualTo(503)
     }
   }
 
   def testKnownMethodTrue = {
-    testDecisionReturnsDecision(b12, b11, _.knownMethods(any) answers mkAnswer(List(GET,POST)))
+    testDecisionReturnsDecision(b12, b11, _.knownMethods(any) returns ValueRes(List(GET,POST)))
   }
 
   def testKnownMethodFalse = {
-    testDecisionReturnsData(b12, _.knownMethods(any) answers mkAnswer(List(GET)), data = createData(method = POST)) {
+    testDecisionReturnsData(b12, _.knownMethods(any) returns ValueRes(List(GET)), data = createData(method = POST)) {
       _.statusCode must beEqualTo(501)
     }
   }
 
   def testURITooLongFalse = {
-    testDecisionReturnsDecision(b11, b10, _.uriTooLong(any) answers mkAnswer(false))
+    testDecisionReturnsDecision(b11, b10, _.uriTooLong(any) returns ValueRes(false))
   }
 
   def testURITooLongTrue = {
-    testDecisionReturnsData(b11, _.uriTooLong(any) answers mkAnswer(true)) {
+    testDecisionReturnsData(b11, _.uriTooLong(any) returns ValueRes(true)) {
       _.statusCode must beEqualTo(414)
     }
   }
 
   def testAllowedMethodTrue = {
-    testDecisionReturnsDecision(b10, b9, _.allowedMethods(any) answers mkAnswer(List(GET,POST)))
+    testDecisionReturnsDecision(b10, b9, _.allowedMethods(any) returns ValueRes(List(GET,POST)))
   }
 
   def testAllowedMethodFalseRespCode = {
-    testDecisionReturnsData(b10,_.allowedMethods(any) answers mkAnswer(List(GET,DELETE)), data = createData(method = POST)) {
-      _.statusCode must beEqualTo(405)
+    testDecisionReturnsData(b10,
+      _.allowedMethods(any) returns ValueRes(List(GET,DELETE)),
+      data = createData(method = POST)) { data =>
+      data.statusCode must beEqualTo(405)
     }
   }
 
   def testAllowedMethodFalseAllowHeader = {
-    testDecisionReturnsData(b10, _.allowedMethods(any) answers mkAnswer(List(GET,POST,DELETE)), data = createData(method=PUT)) {
+    testDecisionReturnsData(b10, _.allowedMethods(any) returns ValueRes(List(GET,POST,DELETE)), data = createData(method=PUT)) {
       _.responseHeader(Allow) must beSome.like {
         case s => s must contain("GET") and contain("POST") and contain("DELETE") // this could be improved (use the actual list above)
       }
@@ -127,7 +129,8 @@ class V3ColBSpecs extends Specification with Mockito with SpecsHelper with Webma
   }
 
   def testMalformedTrue = {
-    testDecisionReturnsData(b9,_.isMalformed(any) returns mkMbAnswer(true)) {
+    testDecisionReturnsData(b9,
+    _.isMalformed(any[Request]) returns mkMbAnswer(true)) {
       _.statusCode must beEqualTo(400)
     }
   }
