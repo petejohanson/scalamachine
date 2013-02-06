@@ -306,40 +306,72 @@ trait Resource {
 }
 
 object Resource {
+  private type ContentTypeGeneric[T] = (ContentType, Request => (Response, Res[T]))
+  type ContentTypeProvided = ContentTypeGeneric[HTTPBody]
+  type ContentTypesProvided = List[ContentTypeProvided]
+  type ContentTypeAccepted = ContentTypeGeneric[Boolean]
+  type ContentTypesAccepted = List[ContentTypeAccepted]
+  type CharsetsProvided = Option[List[(String,Array[Byte] => Array[Byte])]] // None value specifies charset negotiation short-circuiting
+  type EncodingsProvided = Option[List[(String,Array[Byte] => Array[Byte])]] // None values specifies encoding negotiation short-circuiting
+
   type MbResponse = Option[Response]
   val NoResponse = Option.empty[Response]
 
-  /**
-   * create a single element in a ContentTypesProvided list
-   * @param contentType the content type
-   * @param fn the function to convert a Request to a (Response, Res[HTTPBody]) tuple
-   * @return the list element
-   */
-  def contentTypeProvided(contentType: ContentType)
-                         (fn: Request => (Response, Res[HTTPBody])): ContentTypeProvided = {
+  private def contentTypeGeneric[T](contentType: ContentType)(fn: Request => (Response, Res[T])): ContentTypeGeneric[T] = {
     contentType -> fn
   }
 
+  private def contentTypeGeneric[T](contentType: ContentType, response: Response, res: Res[T]): ContentTypeGeneric[T] = {
+    contentTypeGeneric(contentType) { _ =>
+      response -> res
+    }
+  }
+
   /**
-   * create a single element in a ContentTypesProvided list
-   * @param contentType the content type
-   * @param response the response to return, regardless of the request that's passed to the function (2nd element of the tuple)
-   * @param httpBodyRes the Res[HTTPBody] to return
-   * @return the list element
+   * create a single ContentTypeProvided tuple
+   * @param contentType the first element of the tuple
+   * @param fn the second element of the tuple
+   * @return the tuple
+   */
+  def contentTypeProvided(contentType: ContentType)
+                         (fn: Request => (Response, Res[HTTPBody])): ContentTypeProvided = {
+    contentTypeGeneric(contentType)(fn)
+  }
+
+  /**
+   * create a single ContentTypeProvided tuple
+   * @param contentType the first element in the tuple
+   * @param response the response to return in the second element of the tuple
+   * @param httpBodyRes the Res[HTTPBody] to return in the second element of the tuple
+   * @return the tuple
    */
   def contentTypeProvided(contentType: ContentType,
                           response: Response,
                           httpBodyRes: Res[HTTPBody]): ContentTypeProvided = {
-    contentTypeProvided(contentType) { _ =>
-     response -> httpBodyRes
-    }
+    contentTypeGeneric(contentType, response, httpBodyRes)
   }
 
-  type ContentTypeProvided = (ContentType, Request => (Response, Res[HTTPBody]))
-  type ContentTypesProvided = List[ContentTypeProvided]
-  type ContentTypeAccepted = (ContentType, Request => (Response, Res[Boolean]))
-  type ContentTypesAccepted = List[ContentTypeAccepted]
-  type CharsetsProvided = Option[List[(String,Array[Byte] => Array[Byte])]] // None value specifies charset negotiation short-circuiting
-  type EncodingsProvided = Option[List[(String,Array[Byte] => Array[Byte])]] // None values specifies encoding negotiation short-circuiting
-}
+  /**
+   * create a ContentTypeAccepted tuple
+   * @param contentType the first element in the tuple
+   * @param fn the second element in the tuple
+   * @return the tuple
+   */
+  def contentTypeAccepted(contentType: ContentType)
+                         (fn: Request => (Response, Res[Boolean])): ContentTypeAccepted = {
+    contentTypeGeneric(contentType)(fn)
+  }
 
+  /**
+   * create a ContentTypeAccepted tuple
+   * @param contentType the first element in the tuple
+   * @param response the response to return in the second element of the tuple
+   * @param booleanRes the Res[Boolean] to return in the second element of the tuple
+   * @return the tuple
+   */
+  def contentTypeAccepted(contentType: ContentType,
+                          response: Response,
+                          booleanRes: Res[Boolean]): ContentTypeAccepted = {
+    contentTypeGeneric(contentType, response, booleanRes)
+  }
+}
