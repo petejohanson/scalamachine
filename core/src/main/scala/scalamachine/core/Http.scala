@@ -105,6 +105,7 @@ object HTTPBody {
   case object FixedLength extends Type
   case object LazyStream extends Type
 
+  def apply(s: String) = FixedLengthBody(s)
   def apply(bytes: Array[Byte]) = FixedLengthBody(bytes)
   def apply(produce: () => HTTPBody.Chunk) = LazyStreamBody(produce)
 
