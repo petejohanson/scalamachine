@@ -540,7 +540,7 @@ trait WebmachineDecisions {
       } yield ()
 
       val createPath = for {
-        mbCreatePath <- resT[FlowState]((resource.createPath(_: ReqRespData)).st)
+        mbCreatePath <- resT[FlowState](converter2(resource.createPath(_)).st)
         createPath <- resT[FlowState](mbCreatePath.fold(
           some = result(_),
           none = error("create path returned none")).point[FlowState]
@@ -636,7 +636,11 @@ trait WebmachineDecisions {
           _.find(_._1 == chosenCType).map(_._2)
         }
 
-        producedBody <- resT[FlowState](((d: ReqRespData) => mbProvidedF.map(_(d)) | ((d, result(Array[Byte]())))).st)
+        producedBody <- resT[FlowState]({ data: ReqRespData =>
+          mbProvidedF.map { fn =>
+            converter2(fn).apply(data)
+          } | (data -> result(HTTPBody.Empty))
+        }.st)
         body <- encodeBody(resource, producedBody).liftM[ResT]
         _ <- (respBodyL := body).liftM[ResT]
       } yield ()
@@ -808,10 +812,15 @@ trait WebmachineDecisions {
 
       // if found, run it, call encodeBodyIfSet if it succeeds, 500 otherwise
       // if not found, return halt 415
-      didSucceed <- resT[FlowState](((d: ReqRespData) => mbAcceptableF.map(_(d)).getOrElse((d,halt(415)))).st)
-      _ <-
+      didSucceed <- resT[FlowState]({ d: ReqRespData =>
+        mbAcceptableF.map { fn =>
+          converter2(fn).apply(d)
+        } | (d -> halt(415))
+      }.st)
+      _ <- {
         if (didSucceed) encodeBodyIfSet(resource).liftM[ResT]
         else resT[FlowState](halt[HTTPBody](500).point[FlowState]) // TODO: real error message
+      }
     } yield didSucceed
   }
 
