@@ -301,7 +301,7 @@ trait Resource {
     Response(200) -> result(FixedLengthBody(defaultHtml))
   }
 
-  private val defaultHtml = <html><body>Hello,Scalamachine</body></html>.toString
+  private val defaultHtml = <html><body>Hello,Scalamachine</body></html>.toString()
 
 }
 
