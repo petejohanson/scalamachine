@@ -8,8 +8,9 @@ import flow.Decision
 import HTTPMethods._
 import ReqRespData.Metadata
 
-trait SpecsHelper {
-  this: Specification with Mockito =>
+trait SpecsHelper { this: Specification with Mockito =>
+
+  protected val defaultResp = Response(200)
 
   def createResource = mock[Resource]
   def createData(method: HTTPMethod = GET,
@@ -82,8 +83,19 @@ trait SpecsHelper {
     }
   }
 
-  def mkAnswer[T](value: T): Any => (ReqRespData,Res[T]) = d => (d.asInstanceOf[ReqRespData],ValueRes(value))
-  def mkResAnswer[T](value: Res[T]): Any => (ReqRespData,Res[T]) = d => (d.asInstanceOf[ReqRespData],value)
+  def mkAnswer[T](value: T, resp: Response = defaultResp): (Response, Res[T]) = {
+    resp -> ValueRes(value)
+  }
+  def mkMbAnswer[T](value: T, mbResp: Option[Response] = Some(defaultResp)): (Option[Response], Res[T]) = {
+    mbResp -> ValueRes(value)
+  }
+  def mkResAnswer[T](value: Res[T], resp: Response = defaultResp): (Response, Res[T]) = {
+    resp -> value
+  }
+  def mkMbResAnswer[T](value: Res[T],
+                       mbResp: Option[Response] = Some(defaultResp)): (Option[Response], Res[T]) = {
+    mbResp -> value
+  }
 
 
 }
