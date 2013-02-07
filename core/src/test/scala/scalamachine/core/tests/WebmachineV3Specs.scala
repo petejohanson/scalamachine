@@ -159,7 +159,7 @@ class WebmachineV3Specs extends Specification with Mockito with SpecsHelper with
     "If request is a GET or HEAD request"                                           ^
       "if Resource.generateEtag is some, Etag header is set to value"               ! testO18EtagGenerated ^
       "if Resource.lastModified returns date, string value set in Last-Modified"    ! testO18LastModExists ^
-      "if Resource.expires returns a datae, string value set in Expires"            ! testO18ExpiresExists ^
+      "if Resource.expires returns a date, string value set in Expires"             ! testO18ExpiresExists ^
       "otherwise Last-Modified, Expires & Etag not set"                             ! testO18NotGenerated  ^
       "chosen content type function is run"                                         ^
         "result is set in body after being charsetted then encoded"                 ! testO18BodyProductionTest ^
