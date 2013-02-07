@@ -35,8 +35,7 @@ trait NettyWebmachine[M[_]] {
       requestBody = reqBody(req),
       requestHeaders = for {
         (k,v) <- req.getHeaders.asScala.map(entry => (entry.getKey, entry.getValue)).toMap
-        hdr <- HTTPHeader.fromString(k)
-      }  yield (hdr, v)
+      }  yield (HTTPHeader.fromString(k), v)
     )
   }
 

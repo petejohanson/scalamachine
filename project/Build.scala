@@ -12,7 +12,7 @@ import Keys._
 
 object BuildSettings {
   val org = "com.stackmob"
-  val vsn = "0.2.0-SNAPSHOT"
+  val vsn = "0.2.1-SNAPSHOT"
   val scalaVsn = "2.9.1"
 
   lazy val publishSetting = publishTo <<= version { v: String =>
@@ -52,6 +52,16 @@ object BuildSettings {
           <name>Taylor Leese</name>
           <url>http://github.com/taylorleese</url>
         </developer>
+				<developer>
+					<id>ayakushev99</id>
+					<name>Alex Yakushev</name>
+					<url>http://github.com/ayakushev99</url>
+				</developer>
+				<developer>
+					<id>arschles</id>
+					<name>Aaron Schlesinger</name>
+					<url>http://github.com/arschles</url>
+				</developer>
       </developers>
     )
   )
