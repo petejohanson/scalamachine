@@ -42,8 +42,8 @@ class V3ColGSpecs extends Specification with Mockito with SpecsHelper with Webma
   def testVaryAll = {
     import Res._
     val ctypes: ContentTypesProvided = List(
-      contentTypeProvided(ContentType("text/plain"), defaultResp, result(FixedLengthBody(""))),
-      contentTypeProvided(ContentType("application/json"), defaultResp, result(FixedLengthBody("")))
+      contentTypeProvided(ContentType("text/plain"), defaultResp, result(HTTPBody(""))),
+      contentTypeProvided(ContentType("application/json"), defaultResp, result(HTTPBody("")))
     )
 
     val charsets: CharsetsProvided = Some(("charset1", identity[Array[Byte]](_)) :: ("charset2", identity[Array[Byte]](_)) :: Nil)
@@ -327,11 +327,11 @@ class V3ColGSpecs extends Specification with Mockito with SpecsHelper with Webma
   }
 
   def testIfMatchHasEtag = {
-    testDecisionReturnsDecision(g11,h10,_.generateEtag(any) answers mkAnswer(Some("1")), data = createData(headers = Map(IfMatch -> "1,2")))
+    testDecisionReturnsDecision(g11,h10,_.generateEtag(any) returns ValueRes(Some("1")), data = createData(headers = Map(IfMatch -> "1,2")))
   }
 
   def testIfMatchMissingEtag = {
-    testDecisionReturnsData(g11,_.generateEtag(any) answers mkAnswer(None), data = createData(headers = Map(IfMatch -> "1"))) {
+    testDecisionReturnsData(g11,_.generateEtag(any) returns ValueRes(None), data = createData(headers = Map(IfMatch -> "1"))) {
       _.statusCode must beEqualTo(412)
     }
   }
