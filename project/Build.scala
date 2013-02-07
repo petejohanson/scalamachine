@@ -52,6 +52,16 @@ object BuildSettings {
           <name>Taylor Leese</name>
           <url>http://github.com/taylorleese</url>
         </developer>
+				<developer>
+					<id>ayakushev99</id>
+					<name>Alex Yakushev</name>
+					<url>http://github.com/ayakushev99</url>
+				</developer>
+				<developer>
+					<id>arschles</id>
+					<name>Aaron Schlesinger</name>
+					<url>http://github.com/arschles</url>
+				</developer>
       </developers>
     )
   )
