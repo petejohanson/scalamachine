@@ -10,6 +10,7 @@ sealed trait HasHeaders {
 }
 
 case class Request(method: HTTPMethod,
+                   baseURI: String,
                    override val headers: Headers,
                    pathParts: PathParts,
                    queryString: Query,
@@ -155,14 +156,34 @@ object ReqRespData {
    */
   trait ConvertReqRespData[T <: HasHeaders] extends AsReqRespData[T] with FromReqRespData[T]
 
+  /*
+                       baseUri: String = "",
+                       pathParts: List[String] = Nil,
+                       rawPath: String = "",
+                       query: Map[String,List[String]] = Map(),
+                       hostParts: List[String] = Nil,
+                       method: HTTPMethod = GET,
+                       statusCode: Int = 200,
+                       requestHeaders: Map[HTTPHeader, String] = Map(),
+                       responseHeaders: Map[HTTPHeader, String] = Map(),
+                       requestBody: HTTPBody = HTTPBody.Empty,
+                       responseBody: HTTPBody = HTTPBody.Empty,
+                       doRedirect: Boolean = false,
+                       private[scalamachine] val pathData: PathData = PathData(),
+                       private[scalamachine] val hostData: HostData = HostData(),
+                       private[core] val metadata: Metadata = Metadata()
+   */
+
   implicit val requestConvertReqRespData = new ConvertReqRespData[Request] {
     override def toReqRespData(existing: ReqRespData, req: Request): ReqRespData = existing.copy(method = req.method,
+      baseUri = req.baseURI,
       requestHeaders = req.headers,
       pathParts = req.pathParts,
       query = req.queryString,
       requestBody = req.body)
 
     override def fromReqRespData(existing: ReqRespData): Request = Request(existing.method,
+      existing.baseUri,
       existing.requestHeaders,
       existing.pathParts,
       existing.query,
