@@ -2,7 +2,11 @@
 
 [![Build Status](https://travis-ci.org/stackmob/scalamachine.png?branch=master)](https://travis-ci.org/stackmob/scalamachine)
 
-Scalamachine is a port of [Basho's Webmachine](http://github.com/basho/webmachine) to Scala. It is pluggable into different server frameworks: Netty, Finagle, Lift, and Servlets. 
+Scalamachine is a port of [Basho's Webmachine](http://github.com/basho/webmachine) to Scala. It is pluggable into different server frameworks: 
+* Netty
+* Finagle
+* Lift
+* Servlets 
 
 "You can call Webmachine a REST toolkit if you like, and we won't argue with you." - [Webmachine Wiki](http://wiki.basho.com/Webmachine.html)
 
