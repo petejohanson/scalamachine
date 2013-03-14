@@ -83,7 +83,7 @@ object BuildSettings {
 object Dependencies {
 
   lazy val iScalaz        = "com.stackmob"            %% "scalamachine-scalaz-iteratee" % "7.0-SNAPSHOT"    % "compile"
-  lazy val scalaz6        = "org.scalaz"              %% "scalaz-core"                  % "6.0.3"           % "compile"
+  lazy val scalaz6        = "org.scalaz"              %% "scalaz-core"                  % "6.0.4"           % "compile"
   lazy val slf4j          = "org.slf4j"               % "slf4j-api"                     % "1.6.4"           % "compile"
   // Don't want to keep this dependency long term but for now its fastest way to get date parsing for http
   lazy val commonsHttp    = "commons-httpclient"      % "commons-httpclient"            % "3.1"             % "compile"
