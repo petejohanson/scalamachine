@@ -45,7 +45,7 @@ object Decision {
   import Res._
   import ResTransformer._
 
-  type FlowState[T] = State[ReqRespData, T]
+  type FlowState[+T] = State[ReqRespData, T]
   type ResourceF[T] = Resource => ReqRespData => (ReqRespData, Res[T])
   type CheckF[T] = (T, ReqRespData) => Boolean
   type HandlerF[T] = T => FlowState[T]
