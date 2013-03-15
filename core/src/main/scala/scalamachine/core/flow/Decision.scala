@@ -24,11 +24,27 @@ trait Decision {
 
   protected def decide(resource: Resource): FlowState[Res[Decision]]
 
-  private def setError(code: Int, errorBody: Option[HTTPBody]) = for {
-    _ <- statusCodeL := code
-    body <- respBodyL.st
-    _ <- if (body.isEmpty) errorBody.map(respBodyL := _).getOrElse(respBodyL.st) else respBodyL.st
-  } yield ()
+
+  private def setError(code: Int, errorBody: Option[HTTPBody]): IndexedStateT[Id.Id, ReqRespData, ReqRespData, Unit] = {
+    val res = for {
+      _ <- statusCodeL := code
+      body <- respBodyL.st
+      _ <- {
+        if (body.isEmpty) {
+          val respBodyState: IndexedStateT[Id.Id, ReqRespData, ReqRespData, HTTPBody] = errorBody.map { errBody =>
+            respBodyL.assign(errBody)
+          }.getOrElse {
+            respBodyL.st
+          }
+          respBodyState
+        } else {
+          val respBodyState: IndexedStateT[Id.Id, ReqRespData, ReqRespData, HTTPBody] = respBodyL.st
+          respBodyState
+        }
+      }
+    } yield ()
+    res
+  }
 
 
   override def equals(o: Any): Boolean = o match {
