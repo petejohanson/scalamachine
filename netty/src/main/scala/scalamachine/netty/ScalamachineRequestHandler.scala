@@ -3,11 +3,11 @@ package scalamachine.netty
 import org.jboss.netty.channel._
 import org.jboss.netty.handler.codec.http._
 import scalamachine.core.dispatch.DispatchTable
-import scalamachine.internal.scalaz.Id._
+import scalaz.Id._
 import scalamachine.core.{HTTPBody, LazyStreamBody}
 import org.jboss.netty.buffer.ChannelBuffers
 import org.slf4j.LoggerFactory
-import scalamachine.internal.scalaz.effect.IO
+import scalaz.effect.IO
 
 class ScalamachineRequestHandler(dispatchTable: DispatchTable[HttpRequest, NettyHttpResponse, Id])
   extends SimpleChannelUpstreamHandler {

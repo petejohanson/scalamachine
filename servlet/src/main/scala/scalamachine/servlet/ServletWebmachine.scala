@@ -4,7 +4,7 @@ import java.io.InputStream
 import java.net.URI
 import javax.servlet.http.HttpServletRequest
 import scalamachine.core._
-import scalamachine.internal.scalaz.Id._
+import scalaz.Id._
 import dispatch.DispatchTable
 import v3.V3DispatchTable
 import scala.collection.JavaConverters._

@@ -3,15 +3,15 @@ package core
 package v3
 
 import flow._
-import scalamachine.internal.scalaz.std.option._
-import scalamachine.internal.scalaz.std.string._
+import scalaz.std.option._
+import scalaz.std.string._
 import optionSyntax._
-import scalamachine.internal.scalaz.syntax.order._
-import scalamachine.internal.scalaz.syntax.monad._
-import scalamachine.internal.scalaz.OptionT._
-import scalamachine.internal.scalaz.Lens._
-import scalamachine.internal.scalaz.State
-import scalamachine.internal.scalaz.Id
+import scalaz.syntax.order._
+import scalaz.syntax.monad._
+import scalaz.OptionT._
+import scalaz.Lens._
+import scalaz.State
+import scalaz.Id
 import internal.ext._
 import Decision.FlowState
 import Res._
@@ -108,7 +108,9 @@ trait WebmachineDecisions {
 
   /* Accept Exists? */
   lazy val c3: Decision = new Decision {
-    import scalamachine.internal.scalaz.syntax.std.list._
+    import scalaz.syntax.std.list._
+    import scalaz.syntax.monad._
+    import scalaz._
 
     // TODO: move somewhere more global it will probably be used elsewhere
     val defaultContentType = ContentType("text/plain")

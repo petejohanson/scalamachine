@@ -12,8 +12,7 @@ import Keys._
 
 object BuildSettings {
   val org = "com.stackmob"
-  val vsn = "0.2.1-SNAPSHOT"
-  val scalaVsn = "2.9.1"
+  val vsn = "0.3.0-SNAPSHOT"
 
   lazy val publishSetting = publishTo <<= version { v: String =>
     val nexus = "https://oss.sonatype.org/"
@@ -52,16 +51,16 @@ object BuildSettings {
           <name>Taylor Leese</name>
           <url>http://github.com/taylorleese</url>
         </developer>
-				<developer>
-					<id>ayakushev99</id>
-					<name>Alex Yakushev</name>
-					<url>http://github.com/ayakushev99</url>
-				</developer>
-				<developer>
-					<id>arschles</id>
-					<name>Aaron Schlesinger</name>
-					<url>http://github.com/arschles</url>
-				</developer>
+        <developer>
+          <id>ayakushev99</id>
+          <name>Alex Yakushev</name>
+          <url>http://github.com/ayakushev99</url>
+        </developer>
+        <developer>
+          <id>arschles</id>
+          <name>Aaron Schlesinger</name>
+          <url>http://github.com/arschles</url>
+        </developer>
       </developers>
     )
   )
@@ -69,7 +68,8 @@ object BuildSettings {
   val standardSettings = Defaults.defaultSettings ++ ScalastylePlugin.Settings ++ Seq(
     organization := org,
     version := vsn,
-    scalaVersion := scalaVsn,
+    scalaVersion := "2.10.1",
+    crossScalaVersions := Seq("2.10.0", "2.10.1"),
     shellPrompt <<= ShellPrompt.prompt,
     scalacOptions ++= Seq("-deprecation", "-unchecked"),
     testOptions in Test += Tests.Argument("html", "console"),
@@ -81,23 +81,25 @@ object BuildSettings {
 }
 
 object Dependencies {
+  val scalazVsn = "7.0.0-M8"
 
-  lazy val iScalaz        = "com.stackmob"            %% "scalamachine-scalaz-iteratee" % "7.0-SNAPSHOT"    % "compile"
-  lazy val scalaz6        = "org.scalaz"              %% "scalaz-core"                  % "6.0.4"           % "compile"
-  lazy val slf4j          = "org.slf4j"               % "slf4j-api"                     % "1.6.4"           % "compile"
-  // Don't want to keep this dependency long term but for now its fastest way to get date parsing for http
-  lazy val commonsHttp    = "commons-httpclient"      % "commons-httpclient"            % "3.1"             % "compile"
-  lazy val liftweb        = "net.liftweb"             %% "lift-webkit"                  % "2.4"             % "compile"
-  lazy val jetty          = "org.eclipse.jetty"       % "jetty-webapp"                  % "7.3.0.v20110203" % "container"
-  lazy val servletApi     = "javax.servlet"           % "servlet-api"                   % "2.5"             % "compile"
-  lazy val finagle        = "com.twitter"             %% "finagle-http"                 % "1.9.12"          % "compile"
-  lazy val logback        = "ch.qos.logback"          % "logback-classic"               % "1.0.0"           % "compile"
+  lazy val scalazCore      = "org.scalaz"              %% "scalaz-core"                  % scalazVsn         % "compile"
+  lazy val scalazIteratee  = "org.scalaz"              %% "scalaz-iteratee"              % scalazVsn         % "compile"
+  lazy val scalazEffect    = "org.scalaz"              %% "scalaz-effect"                % scalazVsn         % "compile"
+  lazy val scalazTypeLevel = "org.scalaz"              %% "scalaz-typelevel"             % scalazVsn         % "compile"
+  lazy val slf4j           = "org.slf4j"               % "slf4j-api"                     % "1.6.4"           % "compile"
+  lazy val commonsHttp     = "commons-httpclient"      % "commons-httpclient"            % "3.1"             % "compile"
+  lazy val liftweb         = "net.liftweb"             %% "lift-webkit"                  % "2.5-RC2"         % "compile"
+  lazy val jetty           = "org.eclipse.jetty"       % "jetty-webapp"                  % "7.3.0.v20110203" % "container"
+  lazy val servletApi      = "javax.servlet"           % "servlet-api"                   % "2.5"             % "compile"
+  lazy val finagle         = "com.twitter"             %% "finagle-http"                 % "6.2.0"           % "compile"
+  lazy val logback         = "ch.qos.logback"          % "logback-classic"               % "1.0.0"           % "compile"
 
-  lazy val specs2         = "org.specs2"              %% "specs2"                       % "1.12.1"          % "test"
-  lazy val scalacheck     = "org.scalacheck"          %% "scalacheck"                   % "1.10.0"          % "test"
-  lazy val mockito        = "org.mockito"             % "mockito-all"                   % "1.9.0"           % "test"
-  lazy val hamcrest       = "org.hamcrest"            % "hamcrest-all"                  % "1.1"             % "test"
-  lazy val pegdown        = "org.pegdown"             % "pegdown"                       % "1.0.2"           % "test"
+  lazy val specs2          = "org.specs2"              %% "specs2"                       % "1.12.3"          % "test"
+  lazy val scalacheck      = "org.scalacheck"          %% "scalacheck"                   % "1.10.0"          % "test"
+  lazy val mockito         = "org.mockito"             % "mockito-all"                   % "1.9.0"           % "test"
+  lazy val hamcrest        = "org.hamcrest"            % "hamcrest-all"                  % "1.1"             % "test"
+  lazy val pegdown         = "org.pegdown"             % "pegdown"                       % "1.0.2"           % "test"
 
 }
 
@@ -123,7 +125,7 @@ object ScalamachineBuild extends Build {
     settings = standardSettings ++ publishSettings ++ site.settings ++ site.jekyllSupport("jekyll") ++ site.includeScaladoc() ++ ghpages.settings ++
       Seq(
         name := "scalamachine-core",
-        libraryDependencies ++= Seq(iScalaz, slf4j, commonsHttp, specs2, scalacheck, mockito, hamcrest, pegdown),
+        libraryDependencies ++= Seq(scalazCore, scalazIteratee, scalazEffect, scalazTypeLevel, slf4j, commonsHttp, specs2, scalacheck, mockito, hamcrest, pegdown),
         git.remoteRepo := "git@github.com:stackmob/scalamachine",
         docsRepo := "git@github.com:stackmob/scalamachine.site",
         git.branch in ghpages.updatedRepository := Some("master"),
@@ -136,7 +138,7 @@ object ScalamachineBuild extends Build {
     settings = standardSettings ++ publishSettings ++
       Seq(
         name := "scalamachine-scalaz6",
-        libraryDependencies ++= Seq(scalaz6)
+        libraryDependencies ++= Seq(scalazCore)
       )
   )
 

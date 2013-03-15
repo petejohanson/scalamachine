@@ -6,9 +6,9 @@ import scalamachine.core._
 import org.jboss.netty.buffer.ChannelBuffers
 import java.net.URI
 import scala.collection.JavaConverters._
-import scalamachine.internal.scalaz.Id._
-import scalamachine.internal.scalaz.effect.IO
-import scalamachine.internal.scalaz.iteratee.EnumeratorT
+import scalaz.Id._
+import scalaz.effect.IO
+import scalaz.iteratee.EnumeratorT
 import scalamachine.core.v3.V3DispatchTable
 
 sealed trait NettyHttpResponse {
