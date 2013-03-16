@@ -188,6 +188,11 @@ case class ResTransformer[M[_],A](run: M[Res[A]]) {
   def filter(p: A => Boolean)(implicit M: Monad[M]) = {
     ResTransformer(M.bind(self.run) { res => M.point(res filter p) })
   }
+
+  def withFilter(p: A => Boolean)(implicit M: Monad[M]) = {
+    filter(p)
+  }
+
 }
 
 

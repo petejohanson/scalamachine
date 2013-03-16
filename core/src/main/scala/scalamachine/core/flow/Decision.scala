@@ -3,7 +3,6 @@ package flow
 
 import scalaz.{Id, IndexedStateT, State}
 import scalaz.syntax.monad._
-import scalaz.syntax.state._
 
 trait Decision {
   import Decision.FlowState
@@ -24,28 +23,24 @@ trait Decision {
 
   protected def decide(resource: Resource): FlowState[Res[Decision]]
 
-
   private def setError(code: Int, errorBody: Option[HTTPBody]): IndexedStateT[Id.Id, ReqRespData, ReqRespData, Unit] = {
-    val res = for {
+    for {
       _ <- statusCodeL := code
       body <- respBodyL.st
       _ <- {
         if (body.isEmpty) {
           val respBodyState: IndexedStateT[Id.Id, ReqRespData, ReqRespData, HTTPBody] = errorBody.map { errBody =>
             respBodyL.assign(errBody)
-          }.getOrElse {
+          } getOrElse {
             respBodyL.st
           }
           respBodyState
         } else {
-          val respBodyState: IndexedStateT[Id.Id, ReqRespData, ReqRespData, HTTPBody] = respBodyL.st
-          respBodyState
+          respBodyL.st: IndexedStateT[Id.Id, ReqRespData, ReqRespData, HTTPBody]
         }
       }
     } yield ()
-    res
   }
-
 
   override def equals(o: Any): Boolean = o match {
     case o: Decision => o.name == name
