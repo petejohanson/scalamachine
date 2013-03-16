@@ -139,7 +139,9 @@ trait WebmachineDecisions {
 
     protected def decide(resource: Resource): FlowState[Res[Decision]] = {
       val act = for {
-        acceptHeader <- (requestHeadersL member Accept).map(_.getOrElse("*/*")).liftM[ResT]
+        acceptHeader <- {
+            (requestHeadersL member Accept).map[String, ReqRespData](_.getOrElse("*/*")).liftM[ResT]
+        }
         providedResult <- resT[FlowState]((resource.contentTypesProvided(_: ReqRespData)).st)
         contentType <- Util.chooseMediaType(providedResult.unzip._1, acceptHeader).point[ResTFlow]
         _ <- ((metadataL >=> contentTypeL) := contentType).liftM[ResT]
@@ -169,7 +171,7 @@ trait WebmachineDecisions {
 
     protected def decide(resource: Resource): FlowState[Res[Decision]] = {
       val act = for {
-        mbHeader <- (requestHeadersL member AcceptCharset).st.liftM[ResT]
+        mbHeader <- (requestHeadersL member AcceptCharset).st[ReqRespData].liftM[ResT]
         decision <- mbHeader >| e6.point[ResTFlow] | chooseCharset(resource, "*")
       } yield decision
       act.run
@@ -185,7 +187,7 @@ trait WebmachineDecisions {
       val act = for {
         // we can assume that the getOrElse case will never be run because of e5 but if it is the case
         // star will still be handled appropriately
-        header <- (requestHeadersL member AcceptCharset).map(_ | "*").liftM[ResT]
+        header <- (requestHeadersL member AcceptCharset).map[String, ReqRespData](_ | "*").liftM[ResT]
         decision <- chooseCharset(resource, header)
       } yield decision
 
@@ -199,10 +201,10 @@ trait WebmachineDecisions {
 
     protected def decide(resource: Resource): FlowState[Res[Decision]] =  {
       val act = for {
-        media <- (metadataL >=> contentTypeL).map(_ | ContentType("text/plain")).liftM[ResT]
-        charset <- (metadataL >=> chosenCharsetL).map(_.map(";charset=" + _).getOrElse("")).liftM[ResT]
+        media <- (metadataL >=> contentTypeL).map[ContentType, ReqRespData](_ | ContentType("text/plain")).liftM[ResT]
+        charset <- (metadataL >=> chosenCharsetL).map[String, ReqRespData](_.map(";charset=" + _).getOrElse("")).liftM[ResT]
         _ <- ((responseHeadersL member ContentTypeHeader) := some(media.toHeader + charset)).liftM[ResT]
-        mbHeader <- (requestHeadersL member AcceptEncoding).st.liftM[ResT]
+        mbHeader <- (requestHeadersL member AcceptEncoding).st[ReqRespData].liftM[ResT]
         decision <- mbHeader >| f7.point[ResTFlow] | chooseEncoding(resource, "identity;q=1.0,*;q=0.5")
       } yield decision
 
@@ -217,7 +219,7 @@ trait WebmachineDecisions {
     protected def decide(resource: Resource): FlowState[Res[Decision]] = {
       val act = for {
         // like e6 we can assume we have already tested the default case and we won't ever run if we get here
-        header <- (requestHeadersL member AcceptEncoding).map(_ | "identity;q=1.0,*;q=0.5").liftM[ResT]
+        header <- (requestHeadersL member AcceptEncoding).map[String, ReqRespData](_ | "identity;q=1.0,*;q=0.5").liftM[ResT]
         decision <- chooseEncoding(resource, header)
       } yield decision
 
@@ -248,7 +250,7 @@ trait WebmachineDecisions {
         vary <- variances
         _ <- (
           if (vary.length > 0) (responseHeadersL += ((Vary, vary)))
-          else responseHeadersL.st
+          else responseHeadersL.st[ReqRespData]
       ).liftM[ResT]
         resourceExists <- resT[FlowState]((resource.resourceExists(_: ReqRespData)).st)
       } yield if (resourceExists) g8 else h7
@@ -604,7 +606,7 @@ trait WebmachineDecisions {
 
       val setBody = for {
       // find content providing function given chosen content type and produce body, setting it in the response
-        mbChosenCType <- (metadataL >=> contentTypeL).st.liftM[ResT]
+        mbChosenCType <- (metadataL >=> contentTypeL).st[ReqRespData].liftM[ResT]
         chosenCType <- resT[FlowState](mbChosenCType.fold(
           some = result(_),
           none = error("internal flow error, missing chosen ctype in o18")
@@ -759,7 +761,7 @@ trait WebmachineDecisions {
       } getOrElse false
 
     val act = for {
-      mbIums <- (requestHeadersL member headerName).st.liftM[ResT]
+      mbIums <- (requestHeadersL member headerName).st[ReqRespData].liftM[ResT]
       mbLastMod <- resT[FlowState]((resource.lastModified(_: ReqRespData)).st)
       decision <- resT[FlowState] {
         if (isModified(mbLastMod, mbIums)) modified.point[FlowState] else notModified.point[FlowState]
