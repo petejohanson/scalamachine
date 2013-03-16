@@ -522,20 +522,19 @@ trait WebmachineDecisions {
 
       val createPath = for {
         mbCreatePath <- resT[FlowState]((resource.createPath(_: ReqRespData)).st)
-        createPath <- resT[FlowState](mbCreatePath.fold(
-          some = result(_),
-          none = error("create path returned none")).point[FlowState]
-        )
+        createPath <- resT[FlowState](mbCreatePath.some{ result(_).point[FlowState] } none {
+          error("create path returned none").point[FlowState]
+        })
 
         // set dispatch path to new path
         _ <- (dispPathL := createPath).liftM[ResT]
 
         // set location header if its not already set
-        mbExistingLoc <- (responseHeadersL member Location).st.liftM[ResT]
-        baseUri <- baseUriL.st.liftM[ResT]
-        path <- pathL.st.liftM[ResT]
+        mbExistingLoc <- (responseHeadersL member Location).st[ReqRespData].liftM[ResT]
+        baseUri <- baseUriL.st[ReqRespData].liftM[ResT]
+        path <- pathL.st[ReqRespData].liftM[ResT]
         _ <- mbExistingLoc
-              .map(_ => (responseHeadersL member Location).st)
+              .map(_ => (responseHeadersL member Location).st[ReqRespData])
               .getOrElse(((responseHeadersL member Location) := Some(List(baseUri,path,createPath).mkString("/"))))
               .liftM[ResT]
 
@@ -546,8 +545,8 @@ trait WebmachineDecisions {
       val act = for {
         postIsCreate <- resT[FlowState]((resource.postIsCreate(_: ReqRespData)).st)
         _ <- if (postIsCreate) createPath else processPost
-        doRedirect <- doRedirectL.st.liftM[ResT]
-        mbLoc <- (responseHeadersL member Location).st.liftM[ResT]
+        doRedirect <- doRedirectL.st[ReqRespData].liftM[ResT]
+        mbLoc <- (responseHeadersL member Location).st[ReqRespData].liftM[ResT]
         decision <-
           if (doRedirect)
             mbLoc
@@ -607,10 +606,9 @@ trait WebmachineDecisions {
       val setBody = for {
       // find content providing function given chosen content type and produce body, setting it in the response
         mbChosenCType <- (metadataL >=> contentTypeL).st[ReqRespData].liftM[ResT]
-        chosenCType <- resT[FlowState](mbChosenCType.fold(
-          some = result(_),
-          none = error("internal flow error, missing chosen ctype in o18")
-        ).point[FlowState])
+        chosenCType <- resT[FlowState](mbChosenCType.some { result(_).point[FlowState] } none {
+          error("internal flow error, missing chosen ctype in o18").point[FlowState]
+        })
 
         mbProvidedF <- resT[FlowState]((resource.contentTypesProvided(_: ReqRespData)).st) map {
           _.find(_._1 == chosenCType).map(_._2)
@@ -622,7 +620,7 @@ trait WebmachineDecisions {
       } yield ()
 
       val act = for {
-        doBody <- methodL.map(m => m === GET || m === HEAD).liftM[ResT]
+        doBody <- methodL.map[Boolean, ReqRespData](m => m === GET || m === HEAD).liftM[ResT]
         // set Etag, last mod, and expires if GET or HEAD and they are provided by resource
         mbEtag <- ifGetOrHead(doBody, resource.generateEtag(_), none[String])
         mbLastMod <- ifGetOrHead(doBody, resource.lastModified(_), none[Date])
@@ -721,9 +719,9 @@ trait WebmachineDecisions {
     } yield decision
   }
 
-  private def headerExists(header: HTTPHeader, exists: Res[Decision], dne: Res[Decision]) = for {
-    mbIfMatch <- (requestHeadersL member header)
-  } yield mbIfMatch >| exists | dne
+  private def headerExists(header: HTTPHeader, exists: Res[Decision], dne: Res[Decision]): FlowState[Res[Decision]] = {
+    (requestHeadersL member header).map[Res[Decision], ReqRespData](_.map(_ => exists) | dne)
+  }
 
 
   private def testMethod(expected: HTTPMethod,
@@ -803,10 +801,10 @@ trait WebmachineDecisions {
     mbProvidedEnc <- (resource.encodingsProvided(_: ReqRespData)).st.map(_.getOrElse(None))
     charsetter <- (((mbProvidedCh |@| mbCharset) {
       (p,c)  => p.find(_._1 === c)
-    }).join.fold(some = _._2, none = identity[Array[Byte]](_))).point[FlowState]
+    }).join.some({ _._2 }).none({ identity[Array[Byte]](_) })).point[FlowState]
     encoder <- (((mbProvidedEnc |@| mbEncoding) {
       (p,e) => p.find(_._1 === e)
-    }).join.fold(some = _._2, none = identity[Array[Byte]](_))).point[FlowState]
+    }).join.some({ _._2 }).none({ identity[Array[Byte]](_) })).point[FlowState]
   } yield body match {
       case FixedLengthBody(bytes) => encoder(charsetter(bytes))
       case LazyStreamBody(streamer) => LazyStreamBody(streamer.map(_.map {
