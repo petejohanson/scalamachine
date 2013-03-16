@@ -68,7 +68,7 @@ trait WebmachineDecisions {
     (r: AuthResult) => for {
       _ <- r.fold(
         failure = (failMsg: String) => (responseHeadersL += (WWWAuthenticate -> failMsg)),
-        success = responseHeadersL.st
+        success = responseHeadersL.st[ReqRespData]
       )
       _ <- (statusCodeL := 401)
     } yield r
