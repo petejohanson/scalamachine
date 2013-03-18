@@ -70,6 +70,7 @@ object BuildSettings {
     version := vsn,
     scalaVersion := "2.10.1",
     crossScalaVersions := Seq("2.10.0", "2.10.1"),
+    scalacOptions := Seq("-feature", "-language:implicitConversions,", "-language:higherKinds"),
     shellPrompt <<= ShellPrompt.prompt,
     scalacOptions ++= Seq("-deprecation", "-unchecked"),
     testOptions in Test += Tests.Argument("html", "console"),
@@ -118,7 +119,7 @@ object ScalamachineBuild extends Build {
 
   lazy val scalamachine = Project("scalamachine", file("."),
     settings = standardSettings ++ publishSettings ++ Seq(publishArtifact in Compile := false),
-    aggregate = Seq(core, scalaz6utils, servlet, lift, netty)
+    aggregate = Seq(core, scalaz7utils, servlet, lift, netty)
   )
 
   lazy val core = Project("scalamachine-core", file("core"),
@@ -133,11 +134,11 @@ object ScalamachineBuild extends Build {
       )
   )
 
-  lazy val scalaz6utils = Project("scalamachine-scalaz6", file("scalaz6"),
+  lazy val scalaz7utils = Project("scalamachine-scalaz7", file("scalaz7"),
     dependencies = Seq(core),
     settings = standardSettings ++ publishSettings ++
       Seq(
-        name := "scalamachine-scalaz6",
+        name := "scalamachine-scalaz7",
         libraryDependencies ++= Seq(scalazCore)
       )
   )
