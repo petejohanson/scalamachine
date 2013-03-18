@@ -23,7 +23,7 @@ object ScalamachineExample extends LiftWebmachineV3 {
 class Boot {
 
   def boot {
-    LiftRules.statelessDispatchTable.append(ScalamachineExample)
+    LiftRules.statelessDispatch.append(ScalamachineExample)
   }
 
 }
