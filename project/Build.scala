@@ -125,7 +125,7 @@ object ScalamachineBuild extends Build {
     settings = standardSettings ++ publishSettings ++ site.settings ++ site.jekyllSupport("jekyll") ++ site.includeScaladoc() ++ ghpages.settings ++
       Seq(
         name := "scalamachine-core",
-        libraryDependencies ++= Seq(scalazCore, scalazIteratee, scalazEffect, scalazTypeLevel, slf4j, commonsHttp, specs2, scalacheck, mockito, hamcrest, pegdown),
+        libraryDependencies ++= Seq(scalazCore, scalazIteratee, scalazEffect, slf4j, commonsHttp, specs2, scalacheck, mockito, hamcrest, pegdown),
         git.remoteRepo := "git@github.com:stackmob/scalamachine",
         docsRepo := "git@github.com:stackmob/scalamachine.site",
         git.branch in ghpages.updatedRepository := Some("master"),
