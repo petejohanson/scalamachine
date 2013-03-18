@@ -87,7 +87,6 @@ object Dependencies {
   lazy val scalazCore      = "org.scalaz"              %% "scalaz-core"                  % scalazVsn         % "compile"
   lazy val scalazIteratee  = "org.scalaz"              %% "scalaz-iteratee"              % scalazVsn         % "compile"
   lazy val scalazEffect    = "org.scalaz"              %% "scalaz-effect"                % scalazVsn         % "compile"
-  lazy val scalazTypeLevel = "org.scalaz"              %% "scalaz-typelevel"             % scalazVsn         % "compile"
   lazy val slf4j           = "org.slf4j"               % "slf4j-api"                     % "1.6.4"           % "compile"
   lazy val commonsHttp     = "commons-httpclient"      % "commons-httpclient"            % "3.1"             % "compile"
   lazy val liftweb         = "net.liftweb"             %% "lift-webkit"                  % "2.5-RC2"         % "compile"
