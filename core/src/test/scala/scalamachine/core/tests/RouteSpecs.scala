@@ -475,11 +475,11 @@ class RouteSpecs extends Specification with ScalaCheck { override def is =
       case (s,_) => routeToken(s)
     }
 
-  def atleastOnePartDoesntMatch(routeF: List[String] => Route) = forAll(tokensAndChangeIndexAndValue) {
+  def atleastOnePartDoesntMatch(routeF: List[String] => Route) = forAllNoShrink(tokensAndChangeIndexAndValue) {
     (data: (List[String],Int,String)) => {
       val (pathParts,changeAt,changeTo) = data
       val changedParts = pathParts.toBuffer
-      changedParts.update(changeAt, changeTo)
+      changedParts.update(changeAt, changeTo) // requires no shrink
       routeF(pathParts).isDefinedAt(ReqRespData(pathParts = changedParts.toList)) must beFalse
     }
   }
