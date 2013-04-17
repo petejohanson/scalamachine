@@ -85,7 +85,7 @@ object BuildSettings {
 
 object Dependencies {
 
-  val scalazVsn = "7.0.0-M9"
+  val scalazVsn = "7.0.0-RC2"
 
   lazy val scalazCore      = "org.scalaz"              %% "scalaz-core"                  % scalazVsn         % "compile"
   lazy val scalazIteratee  = "org.scalaz"              %% "scalaz-iteratee"              % scalazVsn         % "compile"

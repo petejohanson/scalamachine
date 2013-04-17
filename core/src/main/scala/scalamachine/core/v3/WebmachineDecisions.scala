@@ -140,7 +140,7 @@ trait WebmachineDecisions {
     protected def decide(resource: Resource): FlowState[Res[Decision]] = {
       val act = for {
         acceptHeader <- {
-            (requestHeadersL member Accept).map[String, ReqRespData](_.getOrElse("*/*")).liftM[ResT]
+          (requestHeadersL member Accept).map[String, ReqRespData](_.getOrElse("*/*")).liftM[ResT]
         }
         providedResult <- resT[FlowState]((resource.contentTypesProvided(_: ReqRespData)).st)
         contentType <- Util.chooseMediaType(providedResult.unzip._1, acceptHeader).point[ResTFlow]
@@ -522,7 +522,7 @@ trait WebmachineDecisions {
 
       val createPath = for {
         mbCreatePath <- resT[FlowState]((resource.createPath(_: ReqRespData)).st)
-        createPath <- resT[FlowState](mbCreatePath.some{ result(_).point[FlowState] } none {
+        createPath <- resT[FlowState](mbCreatePath.some { result(_).point[FlowState] } none {
           error("create path returned none").point[FlowState]
         })
 
@@ -720,7 +720,7 @@ trait WebmachineDecisions {
   }
 
   private def headerExists(header: HTTPHeader, exists: Res[Decision], dne: Res[Decision]): FlowState[Res[Decision]] = {
-    (requestHeadersL member header).map[Res[Decision], ReqRespData](_.map(_ => exists) | dne)
+    (requestHeadersL member header).map[Res[Decision], ReqRespData](_ >| exists | dne)
   }
 
 

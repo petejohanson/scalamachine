@@ -30,7 +30,7 @@ trait Decision {
       _ <- {
         if (body.isEmpty) {
           val respBodyState: IndexedStateT[Id.Id, ReqRespData, ReqRespData, HTTPBody] = errorBody.map { errBody =>
-            respBodyL.assign(errBody)
+            respBodyL := errBody
           } getOrElse {
             respBodyL.st
           }
