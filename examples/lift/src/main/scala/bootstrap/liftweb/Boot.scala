@@ -22,8 +22,10 @@ object ScalamachineExample extends LiftWebmachineV3 {
 
 class Boot {
 
-  def boot {
-    LiftRules.statelessDispatch.append(ScalamachineExample)
+  def boot() {
+    LiftRules.statelessDispatch.append {
+      case r: Req => ScalamachineExample(r).getOrElse(sys.error("Error booting."))
+    }
   }
 
 }

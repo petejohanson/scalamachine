@@ -1,4 +1,6 @@
 import sbt._
+import sbtrelease._
+import ReleasePlugin._
 import org.scalastyle.sbt.ScalastylePlugin
 import com.github.siasia._
 import WebPlugin._
@@ -65,7 +67,7 @@ object BuildSettings {
     )
   )
 
-  val standardSettings = Defaults.defaultSettings ++ ScalastylePlugin.Settings ++ Seq(
+  val standardSettings = Defaults.defaultSettings ++ releaseSettings ++ ScalastylePlugin.Settings ++ Seq(
     organization := org,
     version := vsn,
     scalaVersion := "2.10.1",
