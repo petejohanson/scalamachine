@@ -14,7 +14,6 @@ import Keys._
 
 object BuildSettings {
   val org = "com.stackmob"
-  val vsn = "0.3.0-SNAPSHOT"
 
   lazy val publishSetting = publishTo <<= version { v: String =>
     val nexus = "https://oss.sonatype.org/"
@@ -69,7 +68,6 @@ object BuildSettings {
 
   val standardSettings = Defaults.defaultSettings ++ releaseSettings ++ ScalastylePlugin.Settings ++ Seq(
     organization := org,
-    version := vsn,
     scalaVersion := "2.10.1",
     crossScalaVersions := Seq("2.10.0", "2.10.1"),
     scalacOptions := Seq("-feature", "-language:implicitConversions,", "-language:higherKinds"),
