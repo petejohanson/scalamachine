@@ -1,9 +1,8 @@
 package scalamachine.core
 package flow
 
-import scalamachine.internal.scalaz.State
-import scalamachine.internal.scalaz.syntax.monad._
-
+import scalaz.{Id, IndexedStateT, State}
+import scalaz.syntax.monad._
 
 trait Decision {
   import Decision.FlowState
@@ -24,12 +23,24 @@ trait Decision {
 
   protected def decide(resource: Resource): FlowState[Res[Decision]]
 
-  private def setError(code: Int, errorBody: Option[HTTPBody]) = for {
-    _ <- statusCodeL := code
-    body <- respBodyL.st
-    _ <- if (body.isEmpty) errorBody.map(respBodyL := _).getOrElse(respBodyL.st) else respBodyL.st
-  } yield ()
-
+  private def setError(code: Int, errorBody: Option[HTTPBody]): IndexedStateT[Id.Id, ReqRespData, ReqRespData, Unit] = {
+    for {
+      _ <- statusCodeL := code
+      body <- respBodyL.st
+      _ <- {
+        if (body.isEmpty) {
+          val respBodyState: IndexedStateT[Id.Id, ReqRespData, ReqRespData, HTTPBody] = errorBody.map { errBody =>
+            respBodyL := errBody
+          } getOrElse {
+            respBodyL.st
+          }
+          respBodyState
+        } else {
+          respBodyL.st: IndexedStateT[Id.Id, ReqRespData, ReqRespData, HTTPBody]
+        }
+      }
+    } yield ()
+  }
 
   override def equals(o: Any): Boolean = o match {
     case o: Decision => o.name == name
@@ -44,9 +55,8 @@ object Decision {
   import ReqRespData.statusCodeL
   import Res._
   import ResTransformer._
-  import scalamachine.internal.scalaz.syntax.pointed._
 
-  type FlowState[T] = State[ReqRespData, T]
+  type FlowState[+T] = State[ReqRespData, T]
   type ResourceF[T] = Resource => ReqRespData => (ReqRespData, Res[T])
   type CheckF[T] = (T, ReqRespData) => Boolean
   type HandlerF[T] = T => FlowState[T]

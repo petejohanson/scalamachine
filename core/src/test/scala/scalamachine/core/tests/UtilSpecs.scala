@@ -113,8 +113,9 @@ class UtilSpecs extends Specification with ScalaCheck { def is =
   def testManyMediaEntries = forAll(Gen.containerOf[List,String](mediaEntry)) {
     (entries: List[String]) => acceptToMediaTypes(entries.mkString(", ")) must haveSize(entries.size)
   }
-  
-  def testSortedQVals = forAll(Gen.containerOf[List,(String,Double,Boolean)](mediaEntryAndQ)) {
+
+  // TODO: Marking this no shrink until we know why it fails sometimes
+  def testSortedQVals = forAllNoShrink(Gen.containerOf[List,(String,Double,Boolean)](mediaEntryAndQ)) {
     (entriesAndQ: List[(String,Double,Boolean)]) => {
       val (entries, qs, hasQs) = entriesAndQ.unzip3
       val realQs = (qs,hasQs).zipped.map((q: Double,h: Boolean) => if (h) q else 1.0)
@@ -200,11 +201,13 @@ class UtilSpecs extends Specification with ScalaCheck { def is =
     Gen.containerOf[List,String](nonEmptyStr) suchThat { _.size > 0 },
     Gen.containerOf[List,String](nonEmptyStr)  suchThat { _.size > 0 }) {
       (provided: List[String], acceptable: List[String]) => {
-        val default = "ISO-8859-1"
-        val finalProvided = default :: (provided filterNot { acceptable.contains(_) })
+        val isoStr = "ISO-8859-1"
+        val finalProvided = isoStr :: (provided filterNot { acceptable.contains(_) })
         val headerVal = acceptable.mkString(", ")
-        chooseAcceptable(finalProvided, headerVal, default) must beSome.like {
-          case str => str must beEqualTo(default)
+        chooseAcceptable(finalProvided, headerVal, isoStr) must beSome.like {
+          case str => {
+            str must beEqualTo(isoStr)
+          }
         }
       }
     }

@@ -27,7 +27,7 @@ class LocalFileResource extends Resource {
           if (numRead < 0) HTTPBody.EOFChunk
           else HTTPBody.ByteChunk(characters.slice(0, numRead).map(_.toByte))
         } catch {
-          case e => HTTPBody.ErrorChunk(e)
+          case e: Throwable => HTTPBody.ErrorChunk(e)
         }
       },
       ensuring = (r: FileReader) => { println("CLOSING FILE"); r.close() }

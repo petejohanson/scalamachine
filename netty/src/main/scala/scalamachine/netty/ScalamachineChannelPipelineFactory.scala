@@ -4,7 +4,7 @@ import org.jboss.netty.channel.{Channels, ChannelPipeline, ChannelPipelineFactor
 import org.jboss.netty.handler.codec.http._
 import org.jboss.netty.handler.execution.ExecutionHandler
 import scalamachine.core.dispatch.DispatchTable
-import scalamachine.internal.scalaz.Id._
+import scalaz.Id._
 
 class ScalamachineChannelPipelineFactory(private val execHandler: ExecutionHandler, dispatchTable: DispatchTable[HttpRequest, NettyHttpResponse, Id])
   extends ChannelPipelineFactory {
