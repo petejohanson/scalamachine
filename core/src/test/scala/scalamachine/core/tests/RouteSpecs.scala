@@ -3,7 +3,6 @@ package scalamachine.core.tests
 import org.specs2._
 import scalamachine.core.dispatch.Route._
 import org.scalacheck.{Arbitrary, Prop, Gen}
-import org.scalacheck.util.Buildable
 import Prop._
 import scalamachine.core._
 import dispatch._
@@ -431,7 +430,7 @@ class RouteSpecs extends Specification with ScalaCheck { override def is =
     for {
       ls <- nonEmptyTokens
       n <- Gen.choose(0,ls.size - 1)
-      s <- tok
+      s <- tok.suchThat(_ != ls(n))
     } yield (ls, n, s)
 
   // generates a non empty token list and the number of elements to drop from that list
@@ -475,11 +474,11 @@ class RouteSpecs extends Specification with ScalaCheck { override def is =
       case (s,_) => routeToken(s)
     }
 
-  def atleastOnePartDoesntMatch(routeF: List[String] => Route) = forAllNoShrink(tokensAndChangeIndexAndValue) {
+  def atleastOnePartDoesntMatch(routeF: List[String] => Route) = forAll(tokensAndChangeIndexAndValue) {
     (data: (List[String],Int,String)) => {
       val (pathParts,changeAt,changeTo) = data
       val changedParts = pathParts.toBuffer
-      changedParts.update(changeAt, changeTo) // requires no shrink
+      changedParts.update(changeAt, changeTo)
       routeF(pathParts).isDefinedAt(ReqRespData(pathParts = changedParts.toList)) must beFalse
     }
   }
