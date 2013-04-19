@@ -69,7 +69,6 @@ object BuildSettings {
   val standardSettings = Defaults.defaultSettings ++ releaseSettings ++ ScalastylePlugin.Settings ++ Seq(
     organization := org,
     scalaVersion := "2.10.1",
-    crossScalaVersions := Seq("2.10.0", "2.10.1"),
     scalacOptions := Seq("-feature", "-language:implicitConversions,", "-language:higherKinds"),
     shellPrompt <<= ShellPrompt.prompt,
     scalacOptions ++= Seq("-deprecation", "-unchecked"),
