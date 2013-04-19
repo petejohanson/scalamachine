@@ -101,7 +101,7 @@ class UtilSpecs extends Specification with ScalaCheck { def is =
     (m,_,_) <- mediaEntryAndQ
   } yield m
 
-  def mkQ(qVal: Double): String = ";q=%s" format qVal.toString.take(5)
+  def mkQ(qVal: Double): String = ";q=%.3f".format(qVal)
 
   // TODO: these could be improved by actually taking the parts of the entry and checking the generated data
   def singleMediaEntryReturnsSize1 = forAll(mediaEntry) {
@@ -114,16 +114,14 @@ class UtilSpecs extends Specification with ScalaCheck { def is =
     (entries: List[String]) => acceptToMediaTypes(entries.mkString(", ")) must haveSize(entries.size)
   }
 
-  // TODO: Marking this no shrink until we know why it fails sometimes
-  def testSortedQVals = forAllNoShrink(Gen.containerOf[List,(String,Double,Boolean)](mediaEntryAndQ)) {
+  def testSortedQVals = forAll(Gen.containerOf[List,(String,Double,Boolean)](mediaEntryAndQ)) {
     (entriesAndQ: List[(String,Double,Boolean)]) => {
       val (entries, qs, hasQs) = entriesAndQ.unzip3
       val realQs = (qs,hasQs).zipped.map((q: Double,h: Boolean) => if (h) q else 1.0)
       val results = acceptToMediaTypes(entries.mkString(", ")).map(_.qVal)
       results must containAllOf(realQs.toList.sortWith(_ > _)).inOrder ^^ ((i: Double, j: Double ) => i-j < 0.01) // adjust for loss of precision
-
     }
-  }.set(minTestsOk->10)
+  }
 
   def testEmptyProvidedValidAccept = chooseMediaType(Nil, "text/plain") must beNone
   def testInvalidAcceptHeader = chooseMediaType(List(ContentType("text/plain")), "invalid") must beNone 
