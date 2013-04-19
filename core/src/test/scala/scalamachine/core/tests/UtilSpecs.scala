@@ -177,7 +177,7 @@ class UtilSpecs extends Specification with ScalaCheck { def is =
       // need to reverse because beSorted checks ascending order and we want descending
       acceptCharsetToList(string).unzip._2.reverse must beSorted
     }
-  }.set(minTestsOk -> 10)
+  }
 
   val random = new scala.util.Random
   def testNoneAcceptableStarNot0 = forAll(
