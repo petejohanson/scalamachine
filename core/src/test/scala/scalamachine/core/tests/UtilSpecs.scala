@@ -144,13 +144,13 @@ class UtilSpecs extends Specification with ScalaCheck { def is =
       (chooseMediaType(testCt :: Nil, matching.mkString(", ")) must beSome.like { case ct => ct must beEqualTo(testCt) })
   }
 
-  def testOneAcceptValue = forAll(nonEmptyStr,Gen.choose(0.0,1.0),Arbitrary.arbitrary[Boolean]) {
+  def testOneAcceptValue = forAllNoShrink(nonEmptyStr,Gen.choose(0.0,1.0),Arbitrary.arbitrary[Boolean]) {
     (charset: String, qVal: Double, hasQ: Boolean) => {
       val qStr = if (hasQ) mkQ(qVal) else ""
       val string = charset + qStr
       acceptCharsetToList(string) must haveSize(1) and have(
         (tpl: (String,Double)) => {
-          tpl._1 == charset && tpl._2 == (if (hasQ) qVal.toString.take(5).toDouble else 1.0)
+          tpl._1 == charset && tpl._2 == (if (hasQ) "%.3f".format(qVal).toDouble else 1.0)
         }
       )
     }
