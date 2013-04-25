@@ -96,7 +96,7 @@ object Dependencies {
   lazy val logback         = "ch.qos.logback"          % "logback-classic"               % "1.0.11"          % "compile"
 
   lazy val specs2          = "org.specs2"              %% "specs2"                       % "1.14"            % "test"
-  lazy val scalacheck      = "org.scalacheck"          %% "scalacheck"                   % "1.10.0"          % "test"
+  lazy val scalacheck      = "org.scalacheck"          %% "scalacheck"                   % "1.10.1"          % "test"
   lazy val mockito         = "org.mockito"             % "mockito-all"                   % "1.9.0"           % "test"
   lazy val hamcrest        = "org.hamcrest"            % "hamcrest-all"                  % "1.1"             % "test"
   lazy val pegdown         = "org.pegdown"             % "pegdown"                       % "1.0.2"           % "test"
