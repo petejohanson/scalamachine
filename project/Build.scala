@@ -69,9 +69,9 @@ object BuildSettings {
   val standardSettings = Defaults.defaultSettings ++ releaseSettings ++ ScalastylePlugin.Settings ++ Seq(
     organization := org,
     scalaVersion := "2.10.1",
-    scalacOptions := Seq("-feature", "-language:implicitConversions,", "-language:higherKinds"),
+    scalacOptions := Seq("-deprecation", "-unchecked", "-feature", "-language:implicitConversions,", "-language:higherKinds"),
     shellPrompt <<= ShellPrompt.prompt,
-    scalacOptions ++= Seq("-deprecation", "-unchecked"),
+    javaOptions in test ++= Seq("-Xmx1024m"),
     testOptions in Test += Tests.Argument("html", "console"),
     publishArtifact in Test := false,
     resolvers += ("twitter repository" at "http://maven.twttr.com"),
