@@ -71,7 +71,7 @@ object BuildSettings {
     scalaVersion := "2.10.1",
     scalacOptions := Seq("-deprecation", "-unchecked", "-feature", "-language:implicitConversions,", "-language:higherKinds"),
     shellPrompt <<= ShellPrompt.prompt,
-    javaOptions in test ++= Seq("-Xmx1024m"),
+    javaOptions in test ++= Seq("-Xmx2048m"),
     testOptions in Test += Tests.Argument("html", "console"),
     publishArtifact in Test := false,
     resolvers += ("twitter repository" at "http://maven.twttr.com"),
