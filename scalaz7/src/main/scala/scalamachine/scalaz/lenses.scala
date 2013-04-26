@@ -28,7 +28,7 @@ object lenses {
   val queryL: ReqRespData @> Map[String,List[String]] =
     lensg(d => q => d copy (query = q), _.query)
 
-  val reqBody: ReqRespData @> HTTPBody =
+  val reqBodyL: ReqRespData @> HTTPBody =
     lensg(d => b => d copy (requestBody = b), _.requestBody)
 
   val respBodyL: ReqRespData @> HTTPBody =
