@@ -89,10 +89,10 @@ object Dependencies {
   lazy val scalazEffect    = "org.scalaz"              %% "scalaz-effect"                % scalazVsn         % "compile"
   lazy val slf4j           = "org.slf4j"               % "slf4j-api"                     % "1.7.5"           % "compile"
   lazy val commonsHttp     = "commons-httpclient"      % "commons-httpclient"            % "3.1"             % "compile"
-  lazy val liftweb         = "net.liftweb"             %% "lift-webkit"                  % "2.5-RC6"         % "compile"
+  lazy val liftweb         = "net.liftweb"             %% "lift-webkit"                  % "2.5"             % "compile"
   lazy val jetty           = "org.eclipse.jetty"       % "jetty-webapp"                  % "7.3.0.v20110203" % "container"
   lazy val servletApi      = "javax.servlet"           % "servlet-api"                   % "2.5"             % "compile"
-  lazy val finagle         = "com.twitter"             %% "finagle-http"                 % "6.3.0"           % "compile"
+  lazy val finagle         = "com.twitter"             %% "finagle-http"                 % "6.4.0"           % "compile"
   lazy val logback         = "ch.qos.logback"          % "logback-classic"               % "1.0.13"          % "compile"
 
   lazy val specs2          = "org.specs2"              %% "specs2"                       % "1.14"            % "test"
