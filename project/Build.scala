@@ -68,7 +68,7 @@ object BuildSettings {
 
   val standardSettings = Defaults.defaultSettings ++ releaseSettings ++ ScalastylePlugin.Settings ++ Seq(
     organization := org,
-    scalaVersion := "2.10.1",
+    scalaVersion := "2.10.2",
     scalacOptions := Seq("-deprecation", "-unchecked", "-feature", "-language:implicitConversions,", "-language:higherKinds"),
     shellPrompt <<= ShellPrompt.prompt,
     javaOptions in test ++= Seq("-Xmx2048m"),
@@ -92,7 +92,7 @@ object Dependencies {
   lazy val liftweb         = "net.liftweb"             %% "lift-webkit"                  % "2.5"             % "compile"
   lazy val jetty           = "org.eclipse.jetty"       % "jetty-webapp"                  % "7.3.0.v20110203" % "container"
   lazy val servletApi      = "javax.servlet"           % "servlet-api"                   % "2.5"             % "compile"
-  lazy val finagle         = "com.twitter"             %% "finagle-http"                 % "6.4.0"           % "compile"
+  lazy val finagle         = "com.twitter"             %% "finagle-http"                 % "6.5.0"           % "compile"
   lazy val logback         = "ch.qos.logback"          % "logback-classic"               % "1.0.13"          % "compile"
 
   lazy val specs2          = "org.specs2"              %% "specs2"                       % "1.14"            % "test"
