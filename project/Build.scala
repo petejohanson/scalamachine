@@ -2,14 +2,11 @@ import sbt._
 import sbtrelease._
 import ReleasePlugin._
 import org.scalastyle.sbt.ScalastylePlugin
-import com.github.siasia._
-import WebPlugin._
-import com.jsuereth.sbtsite._
-import com.jsuereth.git._
-import com.jsuereth.ghpages._
-import SitePlugin._
-import GitPlugin._
-import GhPages._
+import com.earldouglas.xwp._
+import XwpPlugin._
+import com.typesafe.sbt.SbtSite._
+import com.typesafe.sbt.SbtGit._
+import com.typesafe.sbt.SbtGhPages.{ ghpages, GhPagesKeys => ghkeys }
 import Keys._
 
 object BuildSettings {
@@ -66,7 +63,7 @@ object BuildSettings {
     )
   )
 
-  val standardSettings = Defaults.defaultSettings ++ releaseSettings ++ ScalastylePlugin.Settings ++ Seq(
+  val standardSettings = Defaults.defaultSettings ++ ScalastylePlugin.projectSettings ++ releaseSettings ++ Seq(
     organization := org,
     scalaVersion := "2.10.2",
     scalacOptions := Seq("-deprecation", "-unchecked", "-feature", "-language:implicitConversions,", "-language:higherKinds"),
@@ -90,7 +87,6 @@ object Dependencies {
   lazy val slf4j           = "org.slf4j"               % "slf4j-api"                     % "1.7.5"           % "compile"
   lazy val commonsHttp     = "commons-httpclient"      % "commons-httpclient"            % "3.1"             % "compile"
   lazy val liftweb         = "net.liftweb"             %% "lift-webkit"                  % "2.5"             % "compile"
-  lazy val jetty           = "org.eclipse.jetty"       % "jetty-webapp"                  % "7.3.0.v20110203" % "container"
   lazy val servletApi      = "javax.servlet"           % "servlet-api"                   % "2.5"             % "compile"
   lazy val finagle         = "com.twitter"             %% "finagle-http"                 % "6.5.0"           % "compile"
   lazy val logback         = "ch.qos.logback"          % "logback-classic"               % "1.0.13"          % "compile"
@@ -128,8 +124,8 @@ object ScalamachineBuild extends Build {
         libraryDependencies ++= Seq(scalazCore, scalazIteratee, scalazEffect, slf4j, commonsHttp, specs2, scalacheck, mockito, hamcrest, pegdown),
         git.remoteRepo := "git@github.com:stackmob/scalamachine",
         docsRepo := "git@github.com:stackmob/scalamachine.site",
-        git.branch in ghpages.updatedRepository := Some("master"),
-        ghpages.updatedRepository <<= updatedRepo(ghpages.repository, docsRepo, git.branch in ghpages.updatedRepository)  
+        git.branch in ghkeys.updatedRepository := Some("master"),
+        ghkeys.updatedRepository <<= updatedRepo(ghkeys.repository, docsRepo, git.branch in ghkeys.updatedRepository)
       )
   )
 
@@ -171,19 +167,19 @@ object ScalamachineBuild extends Build {
 
   lazy val servletExample = Project("scalamachine-servlet-example", file("examples/servlet"),
     dependencies = Seq(servlet),
-    settings = standardSettings ++ webSettings ++
+    settings = standardSettings ++ jetty() ++ warSettings ++ webappSettings ++
       Seq(
         name := "scalamachine-servlet-example",
-        libraryDependencies ++= Seq(jetty, logback)
+        libraryDependencies ++= Seq(logback)
       )
   )
 
   lazy val liftExample = Project("scalamachine-lift-example", file("examples/lift"),
     dependencies = Seq(lift),
-    settings = standardSettings ++ webSettings ++
+    settings = standardSettings ++ jetty() ++ warSettings ++ webappSettings ++
       Seq(
         name := "scalamachine-lift-example",
-        libraryDependencies ++= Seq(jetty, logback)
+        libraryDependencies ++= Seq(logback)
       )
   )
 
